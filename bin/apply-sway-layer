@@ -120,6 +120,7 @@ copy_managed() {
 write_managed_files() {
     copy_managed "$REPO_ROOT/config/hypr/binds_sway.conf" "$CONFIG_HOME/hypr/binds_sway.conf"
     copy_managed "$REPO_ROOT/config/hypr/binds_sway.lua" "$CONFIG_HOME/hypr/sway_bindings.lua"
+    copy_managed "$REPO_ROOT/scripts/sway-group-move" "$CONFIG_HOME/hypr/sway-group-move"
     copy_managed "$REPO_ROOT/config/waybar/config.jsonc" "$CONFIG_HOME/waybar/sway-dense.jsonc"
     copy_managed "$REPO_ROOT/config/waybar/style.css" "$CONFIG_HOME/waybar/sway-dense.css"
     copy_managed "$REPO_ROOT/config/quickshell/BarOverrides.qml" "$CONFIG_HOME/quickshell/BarOverrides.qml"
@@ -136,6 +137,7 @@ show_managed_file_diffs() {
     done <<EOF
 $REPO_ROOT/config/hypr/binds_sway.conf $CONFIG_HOME/hypr/binds_sway.conf
 $REPO_ROOT/config/hypr/binds_sway.lua $CONFIG_HOME/hypr/sway_bindings.lua
+$REPO_ROOT/scripts/sway-group-move $CONFIG_HOME/hypr/sway-group-move
 $REPO_ROOT/config/waybar/config.jsonc $CONFIG_HOME/waybar/sway-dense.jsonc
 $REPO_ROOT/config/waybar/style.css $CONFIG_HOME/waybar/sway-dense.css
 $REPO_ROOT/config/quickshell/BarOverrides.qml $CONFIG_HOME/quickshell/BarOverrides.qml
@@ -206,6 +208,7 @@ uninstall_layer() {
     local paths=(
         "$CONFIG_HOME/hypr/binds_sway.conf"
         "$CONFIG_HOME/hypr/sway_bindings.lua"
+        "$CONFIG_HOME/hypr/sway-group-move"
         "$CONFIG_HOME/waybar/sway-dense.jsonc"
         "$CONFIG_HOME/waybar/sway-dense.css"
         "$CONFIG_HOME/quickshell/BarOverrides.qml"

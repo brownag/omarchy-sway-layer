@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[[ $# == 1 ]] || exit 2
+direction=$1
+case $direction in l|r|u|d) ;; *) exit 2 ;; esac
+
+active=$(hyprctl -j activewindow 2>/dev/null) || exit 1
+clients=$(hyprctl -j clients 2>/dev/null) || {
+    hyprctl dispatch swapwindow "$direction" >/dev/null 2>&1 || true
+    exit 0
+}
+
+# Query geometry rather than dispatching focus and trying to restore it: probing
+# must not alter the active window, even when a later command fails.
+selection=$(jq -er --argjson active "$active" --arg direction "$direction" '
+  def grouped: ((.grouped // []) | length) > 0 or (.group != null);
+  ($active | .address) as $address |
+  ($active | grouped) as $active_grouped |
+  if $active_grouped then
+    "out"
+  else
+    ($active.at[0] + ($active.size[0] / 2)) as $cx |
+    ($active.at[1] + ($active.size[1] / 2)) as $cy |
+    [ .[] | select(.address != $address and .mapped == true and .hidden != true
+        and .workspace.id == $active.workspace.id)
+      | (.at[0] + (.size[0] / 2)) as $nx
+      | (.at[1] + (.size[1] / 2)) as $ny
+      | select(if $direction == "l" then $nx < $cx
+               elif $direction == "r" then $nx > $cx
+               elif $direction == "u" then $ny < $cy
+               else $ny > $cy end)
+      | {address, grouped: grouped,
+         distance: (if $direction == "l" or $direction == "r" then (($nx - $cx) | fabs) else (($ny - $cy) | fabs) end)}
+    ] | sort_by(.distance) | .[0] // null
+    | if . == null then "none" elif .grouped then "into" else "swap" end
+  end
+' <<<"$clients" 2>/dev/null) || selection=none
+
+case $selection in
+    out) hyprctl dispatch moveoutofgroup "$direction" >/dev/null 2>&1 || true ;;
+    into) hyprctl dispatch moveintogroup "$direction" >/dev/null 2>&1 || true ;;
+    swap) hyprctl dispatch swapwindow "$direction" >/dev/null 2>&1 || true ;;
+    none) ;;
+esac

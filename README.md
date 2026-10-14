@@ -1,5 +1,7 @@
 # omarchy-sway-layer
 
+This repository is dedicated to the public domain under [CC0 1.0 Universal](LICENSE).
+
 `omarchy-sway-layer` installs a managed set of Sway/i3-inspired keybindings and compact Waybar configuration artifacts for Hyprland, with integration paths for Omarchy's plain-config and Lua-based configuration layouts. The bindings translate familiar workflows to Hyprland dispatchers; they are not a Sway compositor configuration.
 
 The installer does not modify Omarchy's upstream system files in `/usr/share/omarchy` or `~/.local/share/omarchy`. It integrates through user configuration and writes managed files under the user's config directory.

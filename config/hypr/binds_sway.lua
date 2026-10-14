@@ -13,7 +13,7 @@ if not config_home or config_home == "" then
 end
 
 local function context_move(direction)
-    return hl.dsp.exec_cmd(o.shell_quote(config_home .. "/hypr/sway-group-move") .. " " .. direction)
+    return hl.dsp.exec_cmd(o.shell_quote(config_home .. "/hypr/sway-group-move") .. " lua " .. direction)
 end
 
 local directions = {
@@ -24,7 +24,9 @@ local directions = {
 }
 
 for _, item in ipairs(directions) do
-    bind("SUPER + " .. item.key, "Focus " .. item.direction, hl.dsp.focus({ direction = item.direction }))
+    local focus = hl.dsp.focus({ direction = item.direction })
+    bind("SUPER + " .. item.key, "Focus " .. item.direction, focus)
+    bind("SUPER + " .. item.arrow, "Focus " .. item.direction, focus)
     bind("SUPER + SHIFT + " .. item.key, "Move or group window " .. item.direction, context_move(item.direction))
     bind("SUPER + SHIFT + " .. item.arrow, "Move or group window " .. item.direction, context_move(item.direction))
 end
@@ -51,14 +53,22 @@ bind("SUPER + F", "Fullscreen", hl.dsp.window.fullscreen({ mode = "fullscreen" }
 bind("SUPER + SHIFT + MINUS", "Move window to scratchpad", hl.dsp.window.move({ workspace = "special:scratchpad", follow = false }))
 bind("SUPER + MINUS", "Toggle scratchpad", hl.dsp.workspace.toggle_special("scratchpad"))
 
--- Omarchy's Lua binding API has no documented submap option. Keep resizing
--- available with dedicated chords; the plain-config variant retains SUPER+R mode.
+-- Use Hyprland Lua's documented submap API for a modal resize mode.
+bind("SUPER + R", "Enter resize mode", hl.dsp.submap("resize"))
+
 local resize = {
-    { key = "H", x = -20, y = 0 },
-    { key = "J", x = 0, y = 20 },
-    { key = "K", x = 0, y = -20 },
-    { key = "L", x = 20, y = 0 },
+    { key = "H", arrow = "LEFT", x = -20, y = 0 },
+    { key = "J", arrow = "DOWN", x = 0, y = 20 },
+    { key = "K", arrow = "UP", x = 0, y = -20 },
+    { key = "L", arrow = "RIGHT", x = 20, y = 0 },
 }
-for _, item in ipairs(resize) do
-    bind("SUPER + CTRL + " .. item.key, "Resize window", hl.dsp.window.resize({ x = item.x, y = item.y, relative = true }))
-end
+hl.define_submap("resize", function()
+    for _, item in ipairs(resize) do
+        local action = hl.dsp.window.resize({ x = item.x, y = item.y, relative = true })
+        hl.bind(item.key, action, { description = "Resize window" })
+        hl.bind(item.arrow, action, { description = "Resize window" })
+    end
+    local reset = hl.dsp.submap("reset")
+    hl.bind("RETURN", reset, { description = "Exit resize mode" })
+    hl.bind("ESCAPE", reset, { description = "Exit resize mode" })
+end)

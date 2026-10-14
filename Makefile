@@ -25,7 +25,21 @@ test:
 	bash tests/test-sway-installer.sh; \
 	lua tests/test-sway-bindings.lua; \
 	grep -Fq 'bind = SUPER, h, movefocus, l' config/hypr/binds_sway.conf; \
+	grep -Fq 'bind = SUPER, LEFT, movefocus, l' config/hypr/binds_sway.conf; \
+	grep -Fq 'bind = SUPER, DOWN, movefocus, d' config/hypr/binds_sway.conf; \
+	grep -Fq 'bind = SUPER, UP, movefocus, u' config/hypr/binds_sway.conf; \
+	grep -Fq 'bind = SUPER, RIGHT, movefocus, r' config/hypr/binds_sway.conf; \
+	grep -Fq 'bind = SUPER SHIFT, LEFT, exec, sh -c' config/hypr/binds_sway.conf; \
+	grep -Fq 'bind = SUPER SHIFT, DOWN, exec, sh -c' config/hypr/binds_sway.conf; \
+	grep -Fq 'bind = SUPER SHIFT, UP, exec, sh -c' config/hypr/binds_sway.conf; \
+	grep -Fq 'bind = SUPER SHIFT, RIGHT, exec, sh -c' config/hypr/binds_sway.conf; \
 	grep -Fq 'bind = SUPER, d, exec, bemenu-run' config/hypr/binds_sway.conf; \
+	grep -Fq 'bind = SUPER, b, togglesplit, horizontal' config/hypr/binds_sway.conf; \
+	grep -Fq 'bind = SUPER, v, togglesplit, vertical' config/hypr/binds_sway.conf; \
+	grep -Fq 'binde = , LEFT, resizeactive, -20 0' config/hypr/binds_sway.conf; \
+	grep -Fq 'binde = , DOWN, resizeactive, 0 20' config/hypr/binds_sway.conf; \
+	grep -Fq 'binde = , UP, resizeactive, 0 -20' config/hypr/binds_sway.conf; \
+	grep -Fq 'binde = , RIGHT, resizeactive, 20 0' config/hypr/binds_sway.conf; \
 	grep -Fq 'submap = resize' config/hypr/binds_sway.conf; \
 	grep -Fq 'source = ~/.config/hypr/binds_sway.conf' bin/apply-sway-layer; \
 	grep -Fq 'pcall(require, "sway_bindings")' bin/apply-sway-layer; \

@@ -3,7 +3,13 @@ set -euo pipefail
 
 [[ $# == 1 ]] || exit 2
 direction=$1
-case $direction in l|r|u|d) ;; *) exit 2 ;; esac
+case $direction in
+    l) movement_direction=left ;;
+    r) movement_direction=right ;;
+    u) movement_direction=up ;;
+    d) movement_direction=down ;;
+    *) exit 2 ;;
+esac
 
 active=$(hyprctl -j activewindow 2>/dev/null) || exit 1
 if ! clients=$(hyprctl -j clients 2>/dev/null); then
@@ -20,25 +26,40 @@ selection=$(jq -er --argjson active "$active" --arg direction "$direction" '
   if $active_grouped then
     "out"
   else
+    ($active.at[0]) as $ax0 | ($active.at[0] + $active.size[0]) as $ax1 |
+    ($active.at[1]) as $ay0 | ($active.at[1] + $active.size[1]) as $ay1 |
     ($active.at[0] + ($active.size[0] / 2)) as $cx |
     ($active.at[1] + ($active.size[1] / 2)) as $cy |
     [ .[] | select(.address != $address and .mapped == true and .hidden != true
         and .workspace.id == $active.workspace.id)
-      | (.at[0] + (.size[0] / 2)) as $nx
-      | (.at[1] + (.size[1] / 2)) as $ny
+      | (.at[0]) as $nx0 | (.at[0] + .size[0]) as $nx1
+      | (.at[1]) as $ny0 | (.at[1] + .size[1]) as $ny1
+      | ($nx0 + (.size[0] / 2)) as $nx
+      | ($ny0 + (.size[1] / 2)) as $ny
       | select(if $direction == "l" then $nx < $cx
                elif $direction == "r" then $nx > $cx
                elif $direction == "u" then $ny < $cy
                else $ny > $cy end)
-      | {address, grouped: grouped,
-         distance: (if $direction == "l" or $direction == "r" then (($nx - $cx) | fabs) else (($ny - $cy) | fabs) end)}
-    ] | sort_by(.distance) | .[0] // null
+      | (if $direction == "l" or $direction == "r"
+         then ([0, ($ay0 - $ny1), ($ny0 - $ay1)] | max)
+         else ([0, ($ax0 - $nx1), ($nx0 - $ax1)] | max) end) as $perpendicular_gap
+      | (if $direction == "l" or $direction == "r"
+         then ([0, ($ax0 - $nx1), ($nx0 - $ax1)] | max)
+         else ([0, ($ay0 - $ny1), ($ny0 - $ay1)] | max) end) as $axis_gap
+      | (if $direction == "l" or $direction == "r"
+         then ([0, ([ $ay1, $ny1 ] | min) - ([ $ay0, $ny0 ] | max)] | max)
+         else ([0, ([ $ax1, $nx1 ] | min) - ([ $ax0, $nx0 ] | max)] | max) end) as $overlap
+      | {address, grouped: grouped, aligned: ($overlap > 0), axis_gap: $axis_gap, perpendicular_gap: $perpendicular_gap}
+    ] | sort_by([if .aligned then 0 else 1 end, .axis_gap, .perpendicular_gap, .address]) | .[0] // null
     | if . == null then "none" elif .grouped then "into" else "swap" end
   end
 ' <<<"$clients" 2>/dev/null) || selection=none
 
 case $selection in
-    out) hyprctl dispatch 'hl.dsp.window.move({ out_of_group = true })' ;;
+    out)
+        hyprctl dispatch 'hl.dsp.window.move({ out_of_group = true })'
+        [[ $direction == r ]] || hyprctl dispatch "hl.dsp.window.move({ direction = \"$movement_direction\" })"
+        ;;
     into) hyprctl dispatch "hl.dsp.window.move({ into_group = \"$direction\" })" ;;
     swap) hyprctl dispatch "hl.dsp.window.swap({ direction = \"$direction\" })" ;;
     none) ;;

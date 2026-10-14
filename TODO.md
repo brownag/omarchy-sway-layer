@@ -65,3 +65,29 @@ Diagnose and repair why group toggles, directional swapping, and moving windows 
 - User reports both HJKL and arrows fail for group movement; ordinary swaps with `SUPER+SHIFT+direction` also do not work. `SUPER+w` and `SUPER+g` appear not to toggle groups. `SUPER+ALT+arrows` can move windows into groups but not back out.
 - Root cause: Omarchy's Lua-enabled `hyprctl dispatch` parses its argument as a Lua expression. Plain dispatcher strings (`swapwindow l`, etc.) failed Lua parsing; the helper silenced errors. It now calls the installed `hl.dsp.window.swap` / `hl.dsp.window.move` dispatchers through Lua expressions and returns dispatch failures.
 - Live `grouped` values are arrays, matching the parser/test fixture. The plain-config path remains unchanged.
+
+## Follow-up Goal: Directional group targeting and exit placement
+
+Make the context-aware Omarchy Lua action join a group only when that group is the nearest directional neighbor, and make moving out of a group honor the requested direction instead of Hyprland's default.
+
+### Tasks
+
+#### 1. Confirm Hyprland movement capabilities
+- [x] Inspect installed Omarchy/Hyprland dispatcher APIs. The Lua `window.move` wrapper accepts `out_of_group` and `direction` fields but combining them does not set the exit side; native move-out defaults right. A verified sequence is move out, then apply a normal directional move for left/up/down; right needs only move-out.
+- [x] Define/test the quadrant target rule: prioritize windows overlapping the active window on the perpendicular axis, then choose the nearest along the requested axis. This picks a directly aligned quadrant over a diagonal one. If the nearest aligned candidate is ungrouped, swap with it rather than skip to a farther group.
+
+#### 2. Implement and test directional semantics
+- [x] Updated `scripts/sway-group-move` with the verified directional move-out sequence and grouped-target selection; plain-config path remains unchanged.
+- [x] Extended `tests/test-sway-group-move.sh` for all four exit directions, quadrant alignment, and swapping with an intervening ungrouped neighbor.
+- [x] `bash -n scripts/sway-group-move tests/test-sway-group-move.sh`, `bash tests/test-sway-group-move.sh`, `make test`, and `git diff --check` passed.
+
+#### 3. Validate safely
+- [x] Installed through `./bin/apply-sway-layer` with backup `/home/andrew/.config/omarchy-sway-backup/20261013-202804`, reloaded Hyprland, verified helper copy and binding registrations.
+- [x] Disposable live checks passed: bottom-right joined the top-right group upward; bottom-right joined the bottom-left group leftward; a nearer ungrouped window was swapped instead of skipped; group exit placed the member in each of left, right, up, and down directions. Test windows were terminated and the workspace from before each test was restored.
+- [x] Directional move-out requires a two-dispatch sequence for left/up/down because the native move-out dispatcher defaults right and the Lua wrapper's combined direction/out flags do not override it. Right uses the native move-out alone. Unrelated `.scratch/` content was preserved.
+
+### Notes
+- User clarified: with a group at top-right and source at bottom-right, `SUPER+SHIFT+UP` should join the source into that group when it is the nearest directional neighbor. Likewise, a bottom-left group and bottom-right source should join on `SUPER+SHIFT+LEFT`. Apply the same rule in every direction.
+- If an ungrouped window is the nearest neighbor in the requested direction, swap with it; do not skip over it to a more distant group.
+- When moving a member out of a group, its destination direction must match the pressed HJKL/arrow direction exactly, overriding Hyprland's default-right behavior. The original helper passed only `out_of_group = true`; the updated helper moves out, then applies the requested direction for left/up/down.
+- Preserve fallback ordinary directional swap only when there is no group target in that direction. Plain Hyprland config remains unchanged.

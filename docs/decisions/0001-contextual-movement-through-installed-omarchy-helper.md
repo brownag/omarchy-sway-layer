@@ -35,15 +35,15 @@ Commit `202f319` introduced `scripts/sway-group-move`, invoked it from the Lua b
 
 Contextual directional movement is implemented in a separately testable helper installed under the user's Hyprland configuration directory and invoked by Omarchy Lua bindings. The helper owns contextual action selection; the neighbor-inspection approach is recorded in ADR-0002, and dispatch calls follow ADR-0003.
 
-The plain Hyprland configuration path remains unchanged until a separate decision addresses sharing or porting this behavior.
+By explicit user approval in Execution Plan 3, the helper also supports conservative cross-axis reorientation for a clear two-window tiled pair when invoked from the plain Hyprland bindings. This approved extension supersedes the earlier deferral of plain-config parity. It does not broaden the helper into general layout rearrangement: same-axis moves and arrangements that do not meet the clear-pair condition retain their mode-specific fallback behavior.
 
 ### Consequences
 
 - **Positive:** Context-selection logic can be tested independently; runtime use does not depend on source-tree paths; helper install/dry-run/uninstall are part of the managed lifecycle.
 - **Negative:** The solution has an additional installed executable and its lifecycle must remain synchronized with the binding configuration.
 - **Negative:** The helper is coupled to the observed Hyprland client JSON shape; changes to that runtime surface require compatibility work and validation.
-- **Trade-off:** The decision is initially scoped to Omarchy Lua mode; plain-config parity and exact Sway container semantics are not provided.
+- **Trade-off:** The original Lua-only scope has been extended by explicit user approval to include plain-config cross-axis pair reorientation. The separately installed helper remains the contextual-action boundary; this limited parity does not provide general layout rearrangement or exact Sway container semantics.
 
 ## Validation & Compliance
 
-The decision is reflected in `config/hypr/binds_sway.lua`, `scripts/sway-group-move`, and `bin/apply-sway-layer`. `tests/test-sway-installer.sh` covers the managed helper lifecycle; the movement behavior is covered by `tests/test-sway-group-move.sh`. This ADR records the helper boundary, not a claim of universal compatibility across Omarchy/Hyprland versions.
+The decision is reflected in `config/hypr/binds_sway.lua`, `config/hypr/binds_sway.conf`, `scripts/sway-group-move`, and `bin/apply-sway-layer`. `tests/test-sway-installer.sh` covers the managed helper lifecycle; movement behavior is covered by `tests/test-sway-group-move.sh`. Task 3.1.1 live verification covered four Lua-dispatch pair transformations only; plain dispatch, same-axis/non-pair behavior, and resize mode were not live-tested. This ADR records the helper boundary and approved scope extension, not a claim of universal compatibility across Omarchy/Hyprland versions.

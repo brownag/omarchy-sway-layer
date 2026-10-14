@@ -27,7 +27,7 @@ From the repository root, run:
 make test
 ```
 
-The Makefile also provides `make install` and `make uninstall` for invoking the CLI, but do not use those against a real user configuration when you only intend to validate the source tree. On Ubuntu Sway or another non-Omarchy machine, use `make test` for source validation; deployment and live behavior require the intended Hyprland/Omarchy target. No live Omarchy testing is claimed for this project.
+The Makefile also provides `make install` and `make uninstall` for invoking the CLI, but do not use those against a real user configuration when you only intend to validate the source tree. On Ubuntu Sway or another non-Omarchy machine, use `make test` for source validation; deployment and live behavior require the intended Hyprland/Omarchy target. The Task 3.1.1 live check verified four Lua-dispatch pair-reorientation cases on Hyprland 0.56.2 using disposable windows, but did not deploy or reload this project's bindings. Plain-mode dispatch, same-axis/non-pair live behavior, and resize mode were not live-tested.
 
 ## Deploy on Omarchy
 
@@ -40,7 +40,7 @@ Review the preview first, then install:
 
 A normal install creates a timestamped snapshot below `~/.config/omarchy-sway-backup/` before changing files. It copies the managed binding, Waybar, and Quickshell artifacts beneath `~/.config/`. For plain Hyprland configuration, it adds `source = ~/.config/hypr/binds_sway.conf` to `~/.config/hypr/user_custom.conf` when that file exists; otherwise it adds the line to `~/.config/hypr/hyprland.conf`. It appends the integration line rather than replacing the existing configuration.
 
-When the Omarchy Lua engine files are detected, the installer writes `~/.config/hypr/sway_bindings.lua` and adds `pcall(require, "sway_bindings")` to `~/.config/hypr/bindings.lua` (creating that file if only `looknfeel.lua` is present). The module registers bindings through Omarchy's `o.bind` and `hl.dsp` APIs. Omarchy's Lua API does not expose a documented resize submap option, so Lua mode uses `SUPER + CTRL + h/j/k/l` for 20-pixel resizing; the plain Hyprland config retains the `SUPER + r` resize submap. Group-aware movement and close behavior described below applies only to Omarchy Lua mode. The plain-config path is unchanged; parity is deferred to a future shared-code refactor.
+When the Omarchy Lua engine files are detected, the installer writes `~/.config/hypr/sway_bindings.lua` and adds `pcall(require, "sway_bindings")` to `~/.config/hypr/bindings.lua` (creating that file if only `looknfeel.lua` is present). The module registers bindings through Omarchy's `o.bind` and `hl.dsp` APIs. Both integrations provide H/J/K/L and arrow aliases for directional focus, movement, and resizing, plus a `SUPER + r` modal resize mode with 20-pixel steps and Return/Escape exits. Lua mode uses Hyprland Lua's `hl.define_submap` / `hl.dsp.submap` API for resize mode. Group-aware movement and close behavior described below applies only to Omarchy Lua mode. Directional cross-axis pair reorientation is implemented in both integrations; it is a conservative behavior for clear two-window pairs, not general layout rearrangement.
 
 ### Bar selection
 
@@ -88,9 +88,9 @@ Bindings use `SUPER` as the modifier. `SUPER + D` opens the bemenu command runne
 | Keys | Action |
 | --- | --- |
 | `SUPER + d` | Open `bemenu-run` to launch an executable by name |
-| `SUPER + h/j/k/l` | Focus left/down/up/right |
-| `SUPER + SHIFT + h/j/k/l` | Plain config: move the active window. Omarchy Lua mode: context-aware move/swap or group action (see below) |
-| `SUPER + b` / `SUPER + v` | Toggle horizontal / vertical split |
+| `SUPER + h/j/k/l` or `SUPER + LEFT/DOWN/UP/RIGHT` | Focus left/down/up/right |
+| `SUPER + SHIFT + h/j/k/l` or `SUPER + SHIFT + arrows` | Move in that direction. Plain config uses native movement except for qualifying cross-axis pairs; Omarchy Lua mode uses contextual movement/group actions (see below) |
+| `SUPER + b` / `SUPER + v` | Manual split toggle. Plain config requests horizontal / vertical; Lua mode maps both to Omarchy's generic `togglesplit` |
 | `SUPER + e` | Send the `togglesplit` layout message |
 | `SUPER + 1` … `9`, `SUPER + 0` | Switch to workspaces 1 … 10 |
 | `SUPER + SHIFT + 1` … `9`, `SUPER + SHIFT + 0` | Move the active window to workspaces 1 … 10 |
@@ -102,16 +102,17 @@ Bindings use `SUPER` as the modifier. `SUPER + D` opens the bemenu command runne
 | `SUPER + f` | Toggle fullscreen |
 | `SUPER + SHIFT + -` | Move the active window to the special scratchpad workspace |
 | `SUPER + -` | Toggle the special scratchpad workspace |
-| Plain Hyprland: `SUPER + r`, then `h/j/k/l` | Enter resize mode and resize in 20-pixel steps |
-| Lua engine: `SUPER + CTRL + h/j/k/l` | Resize in 20-pixel steps (no modal submap) |
-| Plain Hyprland: `Return` or `Escape` while resizing | Exit resize mode |
+| `SUPER+r`, then `h/j/k/l` or arrows | Enter resize mode in either integration and resize in 20-pixel steps |
+| `Return` or `Escape` while resizing | Exit resize mode in either integration |
 
 ### Omarchy Lua mode: groups and directional actions
 
-In Omarchy Lua mode, both `SUPER+SHIFT+h/j/k/l` and `SUPER+SHIFT+arrows` are context-aware. When neither the focused window nor its directional neighbor is grouped, the action moves or swaps the focused window in that direction. When the neighbor is grouped, it joins that adjacent group. When the focused window is grouped, it moves out of its group in the requested direction. `SUPER+w` toggles the focused window's group; `SUPER+SHIFT+q` is the only close chord managed by this Lua integration. Existing Omarchy aliases `SUPER+g` and `SUPER+ALT+arrows` remain available.
+In both integrations, cross-axis movement on a clear two-window tiled pair reorients the pair and places the focused window on the requested side; this is placement, not a swap (down below, up above, right to the right, left to the left). The helper only treats a pair as clear when there are exactly two visible, mapped, ungrouped, non-floating tiled clients with unambiguous axis-aligned geometry. Same-axis moves and ambiguous or larger arrangements retain their existing mode-specific behavior; this is not general layout rearrangement.
 
-These are Omarchy Lua-mode behaviors only. The plain-config path is unchanged and deferred to a future shared-code refactor; this documentation does not claim plain-config parity. Hyprland groups approximate, but do not reproduce, Sway stacking.
+In Omarchy Lua mode, `SUPER+SHIFT+h/j/k/l` and `SUPER+SHIFT+arrows` remain context-aware. Outside the pair-reorientation case, when neither the focused window nor its directional neighbor is grouped, the action moves or swaps the focused window in that direction. When the neighbor is grouped, it joins that adjacent group. When the focused window is grouped, it moves out of its group in the requested direction. `SUPER+w` toggles the focused window's group; `SUPER+SHIFT+q` is the only close chord managed by this Lua integration. Existing Omarchy aliases `SUPER+g` and `SUPER+ALT+arrows` remain available. Hyprland groups approximate, but do not reproduce, Sway stacking.
+
+Live verification was limited to the four Lua-dispatch cross-axis pair transformations on Hyprland 0.56.2 using disposable windows. The project bindings were not deployed or reloaded for that test. Plain-mode dispatch, same-axis/non-pair behavior, and resize mode have not been live-tested; automated regression coverage does not establish runtime behavior.
 
 ## Native Sway/i3 vs Hyprland
 
-Hyprland does not implement Sway's container tree and layout model identically. These bindings map familiar actions to Hyprland dispatchers (`movefocus`, `movewindow`, `togglesplit`, `layoutmsg`, and special-workspace actions), providing best-effort equivalents rather than guaranteeing identical Sway/i3 split, focus, or container semantics. The resize submap and workspace/window actions are likewise Hyprland bindings, not a native Sway configuration. The Lua integration uses Omarchy's `o.bind`/`hl.dsp` interface and offers non-modal resize chords because the local API does not document submaps. Adjust the user configuration to suit the target's actual Hyprland version and Omarchy setup.
+Hyprland does not implement Sway's container tree and layout model identically. These bindings map familiar actions to Hyprland dispatchers (`movefocus`, `movewindow`, `togglesplit`, `layoutmsg`, and special-workspace actions), providing best-effort equivalents rather than guaranteeing identical Sway/i3 split, focus, or container semantics. The resize modes and workspace/window actions are likewise Hyprland bindings, not a native Sway configuration. Plain `SUPER+b`/`SUPER+v` request horizontal/vertical split toggles; Lua mode maps both keys to Omarchy's generic `togglesplit` dispatcher. Lua resize mode uses the Hyprland Lua submap API. Adjust the user configuration to suit the target's actual Hyprland version and Omarchy setup.

@@ -1,0 +1,40 @@
+{
+  "repository": "omarchy-sway-layer",
+  "strategy": "planning artifact creation: planning/EXECUTION_PLAN_*.md",
+  "generated_at_revision": "3a21f4ab11334af3cbb68affffa0fd88265e4354",
+  "boundaries": [
+    {"revision": "6347d96d7ccb2be354fd2bb5dc621e00d2056694", "label": "initial commit / baseline", "date": "2026-10-13"},
+    {"revision": "8796e88c2fa958f890d4eb514892869417545ed2", "label": "execution plans added", "date": "2026-10-13", "artifact": "planning/EXECUTION_PLAN_1.md; planning/EXECUTION_PLAN_2.md"},
+    {"revision": "3a21f4ab11334af3cbb68affffa0fd88265e4354", "label": "HEAD", "date": "2026-10-13"}
+  ],
+  "intervals": [
+    {
+      "from": "6347d96d7ccb2be354fd2bb5dc621e00d2056694",
+      "to": "8796e88c2fa958f890d4eb514892869417545ed2",
+      "commits": [
+        {"sha": "fc2eaa75cee261034302fc3a97f3de4e2a5598d0", "subject": "feat: add Omarchy Sway compatibility layer", "type": "feat"},
+        {"sha": "1ff1db85b120f85519e91c66f2075d59cbeaf4d4", "subject": "docs: explain Omarchy Sway behavior and grouping", "type": "docs"},
+        {"sha": "8796e88c2fa958f890d4eb514892869417545ed2", "subject": "docs: record implementation orchestration plans", "type": "docs"}
+      ],
+      "churn": {"files_changed": 23, "insertions": 1575, "deletions": 0},
+      "status": {"added": 23, "modified": 0, "deleted": 0, "renamed": 0},
+      "subsystems": {"application_and_configuration": 741, "planning": 730, "scripts": 105},
+      "classification": "initial build / high change, insufficient history for convergence assessment"
+    },
+    {
+      "from": "8796e88c2fa958f890d4eb514892869417545ed2",
+      "to": "3a21f4ab11334af3cbb68affffa0fd88265e4354",
+      "commits": [
+        {"sha": "ae4492bf1bd75341eebc81bd60fe4548d6583920", "subject": "fix: clear shellcheck warnings", "type": "fix"},
+        {"sha": "202f3194fe4bfd2ced6a0ff046eece083dc29a61", "subject": "feat: add context-aware Omarchy group movement", "type": "feat"},
+        {"sha": "43f782d65de2b4b9904f5ad08051a14ae759c1b1", "subject": "docs: explain Omarchy group-aware bindings", "type": "docs"},
+        {"sha": "3a21f4ab11334af3cbb68affffa0fd88265e4354", "subject": "fix: use Lua dispatch for group movement", "type": "fix"}
+      ],
+      "churn": {"files_changed": 13, "insertions": 309, "deletions": 17},
+      "status": {"added": 7, "modified": 6, "deleted": 0, "renamed": 0},
+      "subsystems": {"planning": 92, "scripts": 49, "tests": 125, "application_and_configuration": 111},
+      "classification": "feature refinement and correction; some validation/documentation convergence, but implementation remains volatile"
+    }
+  ],
+  "limitations": ["No tags or merge commits found.", "Only one plan-addition boundary exists; intervals here use the initial commit and current HEAD as outer bounds.", "The initial interval contains the entire repository bootstrap, so its raw churn is not comparable to the follow-up interval."]
+}

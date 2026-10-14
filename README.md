@@ -40,7 +40,7 @@ Review the preview first, then install:
 
 A normal install creates a timestamped snapshot below `~/.config/omarchy-sway-backup/` before changing files. It copies the managed binding, Waybar, and Quickshell artifacts beneath `~/.config/`. For plain Hyprland configuration, it adds `source = ~/.config/hypr/binds_sway.conf` to `~/.config/hypr/user_custom.conf` when that file exists; otherwise it adds the line to `~/.config/hypr/hyprland.conf`. It appends the integration line rather than replacing the existing configuration.
 
-When the Omarchy Lua engine files are detected, the installer writes `~/.config/hypr/sway_bindings.lua` and adds `pcall(require, "sway_bindings")` to `~/.config/hypr/bindings.lua` (creating that file if only `looknfeel.lua` is present). The module registers bindings through Omarchy's `o.bind` and `hl.dsp` APIs. Omarchy's Lua API does not expose a documented resize submap option, so Lua mode uses `SUPER + CTRL + h/j/k/l` for 20-pixel resizing; the plain Hyprland config retains the `SUPER + r` resize submap.
+When the Omarchy Lua engine files are detected, the installer writes `~/.config/hypr/sway_bindings.lua` and adds `pcall(require, "sway_bindings")` to `~/.config/hypr/bindings.lua` (creating that file if only `looknfeel.lua` is present). The module registers bindings through Omarchy's `o.bind` and `hl.dsp` APIs. Omarchy's Lua API does not expose a documented resize submap option, so Lua mode uses `SUPER + CTRL + h/j/k/l` for 20-pixel resizing; the plain Hyprland config retains the `SUPER + r` resize submap. Group-aware movement and close behavior described below applies only to Omarchy Lua mode. The plain-config path is unchanged; parity is deferred to a future shared-code refactor.
 
 ### Bar selection
 
@@ -88,12 +88,15 @@ Bindings use `SUPER` as the modifier. `SUPER + 0` selects workspace 10; shifted 
 | Keys | Action |
 | --- | --- |
 | `SUPER + h/j/k/l` | Focus left/down/up/right |
-| `SUPER + SHIFT + h/j/k/l` | Move the active window left/down/up/right |
+| `SUPER + SHIFT + h/j/k/l` | Plain config: move the active window. Omarchy Lua mode: context-aware move/swap or group action (see below) |
 | `SUPER + b` / `SUPER + v` | Toggle horizontal / vertical split |
 | `SUPER + e` | Send the `togglesplit` layout message |
 | `SUPER + 1` … `9`, `SUPER + 0` | Switch to workspaces 1 … 10 |
 | `SUPER + SHIFT + 1` … `9`, `SUPER + SHIFT + 0` | Move the active window to workspaces 1 … 10 |
-| `SUPER + q` / `SUPER + SHIFT + q` | Close the active window |
+| `SUPER + q` | Plain Hyprland config close binding |
+| `SUPER+SHIFT+q` | Omarchy Lua mode's only managed close chord |
+| `SUPER+w` | Omarchy Lua mode: toggle the focused window's group |
+| `SUPER+g`, `SUPER+ALT+arrows` | Existing Omarchy group aliases remain available |
 | `SUPER + SHIFT + Space` | Toggle floating |
 | `SUPER + f` | Toggle fullscreen |
 | `SUPER + SHIFT + -` | Move the active window to the special scratchpad workspace |
@@ -101,6 +104,12 @@ Bindings use `SUPER` as the modifier. `SUPER + 0` selects workspace 10; shifted 
 | Plain Hyprland: `SUPER + r`, then `h/j/k/l` | Enter resize mode and resize in 20-pixel steps |
 | Lua engine: `SUPER + CTRL + h/j/k/l` | Resize in 20-pixel steps (no modal submap) |
 | Plain Hyprland: `Return` or `Escape` while resizing | Exit resize mode |
+
+### Omarchy Lua mode: groups and directional actions
+
+In Omarchy Lua mode, both `SUPER+SHIFT+h/j/k/l` and `SUPER+SHIFT+arrows` are context-aware. When neither the focused window nor its directional neighbor is grouped, the action moves or swaps the focused window in that direction. When the neighbor is grouped, it joins that adjacent group. When the focused window is grouped, it moves out of its group in the requested direction. `SUPER+w` toggles the focused window's group; `SUPER+SHIFT+q` is the only close chord managed by this Lua integration. Existing Omarchy aliases `SUPER+g` and `SUPER+ALT+arrows` remain available.
+
+These are Omarchy Lua-mode behaviors only. The plain-config path is unchanged and deferred to a future shared-code refactor; this documentation does not claim plain-config parity. Hyprland groups approximate, but do not reproduce, Sway stacking.
 
 ## Native Sway/i3 vs Hyprland
 

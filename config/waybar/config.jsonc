@@ -1,0 +1,73 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 25,
+  "spacing": 4,
+  "modules-left": ["hyprland/workspaces", "hyprland/window"],
+  "modules-center": ["clock#center"],
+  "modules-right": ["cpu", "memory", "disk", "disk#home", "temperature", "network", "pulseaudio", "battery", "clock", "tray"],
+  "hyprland/workspaces": {
+    "format": "{name}",
+    "format-icons": { "urgent": "!", "active": "●", "default": "○" },
+    "persistent-workspaces": { "*": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] }
+  },
+  "hyprland/window": {
+    "max-length": 48,
+    "separate-outputs": true,
+    "rewrite": { "": "Desktop" }
+  },
+  "clock#center": {
+    "format": "{:%a %d %b}",
+    "tooltip": false
+  },
+  "cpu": {
+    "format": "CPU {usage}% {avg_frequency}GHz",
+    "tooltip": false
+  },
+  "memory": {
+    "format": "RAM {used:0.1f}/{total:0.1f}GiB",
+    "tooltip": false
+  },
+  "disk": {
+    "path": "/",
+    "format": "DISK {free} free",
+    "tooltip-format": "Root: {used} used of {total}"
+  },
+  "disk#home": {
+    "path": "/home",
+    "format": "HOME {free} free",
+    "tooltip-format": "Home: {used} used of {total}"
+  },
+  "temperature": {
+    "format": "TEMP {temperatureC}°C",
+    "critical-threshold": 80,
+    "tooltip": false
+  },
+  "network": {
+    "format-wifi": "{essid} {signalStrength}% ↓{bandwidthDownBytes} ↑{bandwidthUpBytes}",
+    "format-ethernet": "{ifname} ↓{bandwidthDownBytes} ↑{bandwidthUpBytes}",
+    "format-disconnected": "NET down",
+    "tooltip-format": "{ifname} ({ipaddr})"
+  },
+  "pulseaudio": {
+    "format": "VOL {volume}%",
+    "format-muted": "VOL muted",
+    "scroll-step": 5,
+    "tooltip": false
+  },
+  "battery": {
+    "format": "BAT {capacity}%",
+    "format-charging": "BAT +{capacity}%",
+    "format-plugged": "BAT AC",
+    "states": { "warning": 30, "critical": 15 },
+    "tooltip": false
+  },
+  "clock": {
+    "format": "{:%Y-%m-%d W%V %H:%M}",
+    "tooltip-format": "{:%A, %B %d, %Y %H:%M:%S}"
+  },
+  "tray": {
+    "icon-size": 14,
+    "spacing": 4
+  }
+}

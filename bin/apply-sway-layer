@@ -1,0 +1,293 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+REPO_ROOT=$(cd -- "$SCRIPT_DIR/.." && pwd)
+CONFIG_HOME=${XDG_CONFIG_HOME:-"${HOME:?HOME must be set}/.config"}
+BACKUP_ROOT=${OMARCHY_SWAY_BACKUP_ROOT:-"$CONFIG_HOME/omarchy-sway-backup"}
+DRY_RUN=0
+ENABLE_WAYBAR=0
+ACTION=install
+ROLLBACK_TARGET=
+SOURCE_LINE='source = ~/.config/hypr/binds_sway.conf'
+LUA_LINE='pcall(require, "sway_bindings")'
+WAYBAR_LINE='exec-once = waybar -c ~/.config/waybar/sway-dense.jsonc -s ~/.config/waybar/sway-dense.css'
+
+usage() {
+    cat <<'USAGE'
+Usage: apply-sway-layer [--enable-waybar] [-n|--dry-run]
+       apply-sway-layer --uninstall [-n|--dry-run]
+       apply-sway-layer --rollback latest|TIMESTAMP [-n|--dry-run]
+       apply-sway-layer -h|--help
+
+Install the managed Sway-style Hyprland bindings and bar configuration.
+USAGE
+}
+
+fail() {
+    printf 'apply-sway-layer: %s\n' "$*" >&2
+    exit 1
+}
+
+parse_args() {
+    while (($#)); do
+        case $1 in
+            --enable-waybar) ENABLE_WAYBAR=1 ;;
+            -n|--dry-run) DRY_RUN=1 ;;
+            --uninstall)
+                [[ $ACTION == install ]] || fail 'choose only one operation'
+                ACTION=uninstall
+                ;;
+            --rollback)
+                [[ $ACTION == install ]] || fail 'choose only one operation'
+                (($# >= 2)) || fail '--rollback requires latest or a timestamp'
+                ACTION=rollback
+                ROLLBACK_TARGET=$2
+                shift
+                ;;
+            -h|--help) usage; exit 0 ;;
+            *) fail "unknown option: $1" ;;
+        esac
+        shift
+    done
+    [[ $ACTION == install || $ENABLE_WAYBAR == 0 ]] || fail '--enable-waybar is only valid during install'
+}
+
+load_detection() {
+    local key value
+    declare -gA DETECTION=()
+    while IFS='=' read -r key value; do
+        [[ $key =~ ^[A-Z_]+$ && $value =~ ^[01]$ ]] || continue
+        DETECTION[$key]=$value
+    done < <(bash "$REPO_ROOT/scripts/detect_omarchy.sh")
+}
+
+line_present() {
+    local path=$1 line=$2
+    [[ -f $path ]] && grep -Fqx -- "$line" "$path"
+}
+
+print_file_diff() {
+    local path=$1
+    shift
+    local -a lines=("$@")
+    if [[ -f $path ]]; then
+        diff -u --label "$path (before)" --label "$path (after)" "$path" <(
+            cat -- "$path"
+            if [[ -s $path ]] && [[ $(tail -c 1 "$path" | wc -l) -eq 0 ]]; then printf '\n'; fi
+            for line in "${lines[@]}"; do
+                if ! line_present "$path" "$line"; then printf '%s\n' "$line"; fi
+            done
+        ) || [[ $? == 1 ]]
+    else
+        diff -u --label /dev/null --label "$path (after)" /dev/null <(
+            for line in "${lines[@]}"; do printf '%s\n' "$line"; done
+        ) || [[ $? == 1 ]]
+    fi
+}
+
+# Apply line-only edits without replacing any unrelated configuration content.
+ensure_line() {
+    local path=$1 line=$2 dir
+    line_present "$path" "$line" && return 0
+    dir=$(dirname -- "$path")
+    mkdir -p -- "$dir"
+    if [[ -e $path && -s $path ]] && [[ $(tail -c 1 "$path" | wc -l) -eq 0 ]]; then
+        printf '\n' >>"$path"
+    fi
+    printf '%s\n' "$line" >>"$path"
+}
+
+remove_line() {
+    local path=$1 line=$2 tmp
+    [[ -f $path ]] || return 0
+    tmp=$(mktemp "${path}.XXXXXX")
+    awk -v wanted="$line" '$0 != wanted { print }' "$path" >"$tmp"
+    if cmp -s -- "$path" "$tmp"; then
+        rm -f -- "$tmp"
+    else
+        cat -- "$tmp" >"$path"
+        rm -f -- "$tmp"
+    fi
+}
+
+copy_managed() {
+    local source=$1 destination=$2
+    mkdir -p -- "$(dirname -- "$destination")"
+    cp -- "$source" "$destination"
+}
+
+write_managed_files() {
+    copy_managed "$REPO_ROOT/config/hypr/binds_sway.conf" "$CONFIG_HOME/hypr/binds_sway.conf"
+    copy_managed "$REPO_ROOT/config/hypr/binds_sway.lua" "$CONFIG_HOME/hypr/sway_bindings.lua"
+    copy_managed "$REPO_ROOT/config/waybar/config.jsonc" "$CONFIG_HOME/waybar/sway-dense.jsonc"
+    copy_managed "$REPO_ROOT/config/waybar/style.css" "$CONFIG_HOME/waybar/sway-dense.css"
+    copy_managed "$REPO_ROOT/config/quickshell/BarOverrides.qml" "$CONFIG_HOME/quickshell/BarOverrides.qml"
+}
+
+show_managed_file_diffs() {
+    local source destination
+    while IFS=' ' read -r source destination; do
+        if [[ -e $destination ]]; then
+            diff -u --label "$destination (before)" --label "$destination (after)" "$destination" "$source" || [[ $? == 1 ]]
+        else
+            diff -u --label /dev/null --label "$destination (after)" /dev/null "$source" || [[ $? == 1 ]]
+        fi
+    done <<EOF
+$REPO_ROOT/config/hypr/binds_sway.conf $CONFIG_HOME/hypr/binds_sway.conf
+$REPO_ROOT/config/hypr/binds_sway.lua $CONFIG_HOME/hypr/sway_bindings.lua
+$REPO_ROOT/config/waybar/config.jsonc $CONFIG_HOME/waybar/sway-dense.jsonc
+$REPO_ROOT/config/waybar/style.css $CONFIG_HOME/waybar/sway-dense.css
+$REPO_ROOT/config/quickshell/BarOverrides.qml $CONFIG_HOME/quickshell/BarOverrides.qml
+EOF
+    if [[ ${DETECTION[LUA_ENGINE]:-0} == 1 ]]; then
+        local lua_target="$CONFIG_HOME/hypr/bindings.lua"
+        if [[ -e $lua_target ]]; then
+            print_file_diff "$lua_target" "$LUA_LINE"
+        else
+            printf '%s\n' "--- /dev/null" "+++ $lua_target (after)" "@@" "+$LUA_LINE"
+        fi
+    else
+        local conf_target="$CONFIG_HOME/hypr/hyprland.conf"
+        [[ ${DETECTION[USER_CUSTOM_CONF]:-0} != 1 ]] || conf_target="$CONFIG_HOME/hypr/user_custom.conf"
+        print_file_diff "$conf_target" "$SOURCE_LINE"
+    fi
+    if ((ENABLE_WAYBAR)); then
+        local exec_target="$CONFIG_HOME/hypr/hyprland.conf"
+        [[ ${DETECTION[USER_CUSTOM_CONF]:-0} != 1 ]] || exec_target="$CONFIG_HOME/hypr/user_custom.conf"
+        print_file_diff "$exec_target" "$WAYBAR_LINE"
+    fi
+}
+
+reload_session() {
+    if [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]] && [[ ${DETECTION[HYPRCTL_AVAILABLE]:-0} == 1 ]]; then
+        hyprctl reload >/dev/null 2>&1 || true
+        if ((ENABLE_WAYBAR)) && [[ ${DETECTION[WAYBAR_AVAILABLE]:-0} == 1 ]]; then
+            pkill -SIGUSR2 -x waybar >/dev/null 2>&1 || true
+        fi
+    fi
+}
+
+install_layer() {
+    load_detection
+    if ((DRY_RUN)); then
+        if [[ ${DETECTION[LUA_ENGINE]:-0} != 1 && ${DETECTION[HYPRLAND_CONFIG]:-0} != 1 && ${DETECTION[USER_CUSTOM_CONF]:-0} != 1 ]]; then
+            fail 'no hyprland.conf, user_custom.conf, or Lua engine found under the config home'
+        fi
+        printf 'DRY RUN: no backup or files will be written.\n'
+        show_managed_file_diffs
+        return 0
+    fi
+    if [[ ${DETECTION[LUA_ENGINE]:-0} != 1 && ${DETECTION[HYPRLAND_CONFIG]:-0} != 1 && ${DETECTION[USER_CUSTOM_CONF]:-0} != 1 ]]; then
+        fail 'no hyprland.conf, user_custom.conf, or Lua engine found under the config home'
+    fi
+    local backup_dir
+    backup_dir=$(bash "$REPO_ROOT/scripts/backup.sh")
+    printf 'Backup created: %s\n' "$backup_dir"
+    write_managed_files
+    if [[ ${DETECTION[LUA_ENGINE]:-0} == 1 ]]; then
+        ensure_line "$CONFIG_HOME/hypr/bindings.lua" "$LUA_LINE"
+    else
+        local conf_target="$CONFIG_HOME/hypr/hyprland.conf"
+        [[ ${DETECTION[USER_CUSTOM_CONF]:-0} != 1 ]] || conf_target="$CONFIG_HOME/hypr/user_custom.conf"
+        ensure_line "$conf_target" "$SOURCE_LINE"
+    fi
+    if ((ENABLE_WAYBAR)); then
+        local exec_target="$CONFIG_HOME/hypr/hyprland.conf"
+        [[ ${DETECTION[USER_CUSTOM_CONF]:-0} != 1 ]] || exec_target="$CONFIG_HOME/hypr/user_custom.conf"
+        ensure_line "$exec_target" "$WAYBAR_LINE"
+    fi
+    reload_session
+    printf 'Sway layer installed.\n'
+}
+
+uninstall_layer() {
+    load_detection
+    local paths=(
+        "$CONFIG_HOME/hypr/binds_sway.conf"
+        "$CONFIG_HOME/hypr/sway_bindings.lua"
+        "$CONFIG_HOME/waybar/sway-dense.jsonc"
+        "$CONFIG_HOME/waybar/sway-dense.css"
+        "$CONFIG_HOME/quickshell/BarOverrides.qml"
+    )
+    if ((DRY_RUN)); then
+        printf 'DRY RUN: remove managed files and lines only.\n'
+        local path
+        for path in "${paths[@]}"; do [[ ! -e $path ]] || printf 'remove %s\n' "$path"; done
+        printf 'remove exact managed lines from %s and %s\n' "$CONFIG_HOME/hypr/hyprland.conf" "$CONFIG_HOME/hypr/user_custom.conf"
+        return 0
+    fi
+    local path
+    for path in "${paths[@]}"; do rm -f -- "$path"; done
+    remove_line "$CONFIG_HOME/hypr/hyprland.conf" "$SOURCE_LINE"
+    remove_line "$CONFIG_HOME/hypr/user_custom.conf" "$SOURCE_LINE"
+    remove_line "$CONFIG_HOME/hypr/user_custom.conf" "$WAYBAR_LINE"
+    remove_line "$CONFIG_HOME/hypr/hyprland.conf" "$WAYBAR_LINE"
+    if [[ -f $CONFIG_HOME/hypr/bindings.lua ]]; then
+        remove_line "$CONFIG_HOME/hypr/bindings.lua" "$LUA_LINE"
+        if [[ ! -s $CONFIG_HOME/hypr/bindings.lua && ${DETECTION[LOOKNFEEL_LUA]:-0} == 1 ]]; then
+            rm -f -- "$CONFIG_HOME/hypr/bindings.lua"
+        fi
+    fi
+    reload_session
+    printf 'Sway layer uninstalled.\n'
+}
+
+resolve_backup() {
+    local target=$1 candidate
+    [[ $target == latest || $target =~ ^[0-9]{8}-[0-9]{6}(-[0-9]+)?$ ]] || fail 'invalid rollback target; use latest or a backup timestamp'
+    if [[ $target == latest ]]; then
+        candidate=$(find "$BACKUP_ROOT" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort | tail -n 1)
+        [[ -n $candidate ]] || fail "no backups found under $BACKUP_ROOT"
+        target=$candidate
+    fi
+    [[ -d $BACKUP_ROOT/$target && -f $BACKUP_ROOT/$target/manifest.txt ]] || fail "backup not found: $target"
+    printf '%s\n' "$BACKUP_ROOT/$target"
+}
+
+rollback_layer() {
+    local backup_dir=$1 manifest="$backup_dir/manifest.txt" present source destination
+    if ((DRY_RUN)); then
+        printf 'DRY RUN: restore snapshot %s\n' "$backup_dir"
+        for present in HYPR WAYBAR QUICKSHELL; do
+            source=
+            destination=
+            case $present in
+                HYPR) source="$backup_dir/hypr"; destination="$CONFIG_HOME/hypr" ;;
+                WAYBAR) source="$backup_dir/waybar"; destination="$CONFIG_HOME/waybar" ;;
+                QUICKSHELL) source="$backup_dir/quickshell"; destination="$CONFIG_HOME/quickshell" ;;
+            esac
+            if grep -Fqx "${present}_PRESENT=1" "$manifest"; then printf 'restore %s -> %s\n' "$source" "$destination"; else printf 'remove %s (absent in snapshot)\n' "$destination"; fi
+        done
+        return 0
+    fi
+    local temp_manifest="$backup_dir/manifest.txt"
+    for present in HYPR WAYBAR QUICKSHELL; do
+        case $present in
+            HYPR) source="$backup_dir/hypr"; destination="$CONFIG_HOME/hypr" ;;
+            WAYBAR) source="$backup_dir/waybar"; destination="$CONFIG_HOME/waybar" ;;
+            QUICKSHELL) source="$backup_dir/quickshell"; destination="$CONFIG_HOME/quickshell" ;;
+        esac
+        if grep -Fqx "${present}_PRESENT=1" "$temp_manifest"; then
+            [[ -e $source || -L $source ]] || fail "backup snapshot is incomplete: $source"
+            rm -rf -- "$destination"
+            mkdir -p -- "$(dirname -- "$destination")"
+            cp -a -- "$source" "$destination"
+        else
+            rm -rf -- "$destination"
+        fi
+    done
+    load_detection
+    reload_session
+    printf 'Rollback restored from %s.\n' "${backup_dir##*/}"
+}
+
+parse_args "$@"
+case $ACTION in
+    install) install_layer ;;
+    uninstall) uninstall_layer ;;
+    rollback)
+        backup_dir=$(resolve_backup "$ROLLBACK_TARGET")
+        rollback_layer "$backup_dir"
+        ;;
+esac

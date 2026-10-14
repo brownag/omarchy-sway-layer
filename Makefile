@@ -25,6 +25,7 @@ test:
 	bash tests/test-sway-installer.sh; \
 	lua tests/test-sway-bindings.lua; \
 	grep -Fq 'bind = SUPER, h, movefocus, l' config/hypr/binds_sway.conf; \
+	grep -Fq 'bind = SUPER, d, exec, bemenu-run' config/hypr/binds_sway.conf; \
 	grep -Fq 'submap = resize' config/hypr/binds_sway.conf; \
 	grep -Fq 'source = ~/.config/hypr/binds_sway.conf' bin/apply-sway-layer; \
 	grep -Fq 'pcall(require, "sway_bindings")' bin/apply-sway-layer; \

@@ -29,6 +29,9 @@ for _, item in ipairs(directions) do
     bind("SUPER + SHIFT + " .. item.arrow, "Move or group window " .. item.direction, context_move(item.direction))
 end
 
+-- Keep the arbitrary command runner separate from Omarchy's app menu on SUPER+SPACE.
+bind("SUPER + D", "Run command", hl.dsp.exec_cmd("bemenu-run"))
+
 -- Omarchy exposes a layout toggle without an explicit horizontal/vertical option.
 bind("SUPER + B", "Toggle horizontal split", hl.dsp.layout("togglesplit"))
 bind("SUPER + V", "Toggle vertical split", hl.dsp.layout("togglesplit"))

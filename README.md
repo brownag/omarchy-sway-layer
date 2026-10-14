@@ -15,7 +15,7 @@ The installer does not modify Omarchy's upstream system files in `/usr/share/oma
 
 ## Prerequisites
 
-For developer validation, use Bash, GNU Make, ShellCheck, `jq`, and Lua's `luac` compiler. `make test` requires `shellcheck`, `jq`, and `luac`; it checks shell syntax/lint, JSON validity, Lua syntax, and selected static configuration strings. It does not run an Omarchy integration test.
+For developer validation, use Bash, GNU Make, ShellCheck, `jq`, and Lua's `luac` compiler. `make test` requires `shellcheck`, `jq`, and `luac`; it checks shell syntax/lint, JSON validity, Lua syntax, and selected static configuration strings. It does not run an Omarchy integration test. The `SUPER+D` command runner requires `bemenu-run` (provided by bemenu) on the target system.
 
 Deployment is intended for a user session running Omarchy on Hyprland. The installer does not require root. Waybar is needed only if opting into the Waybar startup line. A machine running Ubuntu Sway or another non-Omarchy environment can inspect the repository and run its static tests; this does not make the Hyprland/Omarchy layer a native Sway configuration or verify target-machine behavior.
 
@@ -83,10 +83,11 @@ The source line is expected for plain-config integration; the Waybar line is exp
 
 ## Keybindings
 
-Bindings use `SUPER` as the modifier. `SUPER + 0` selects workspace 10; shifted number bindings move the active window to the corresponding workspace.
+Bindings use `SUPER` as the modifier. `SUPER + D` opens the bemenu command runner for arbitrary executables on `PATH`; this is separate from Omarchy's `SUPER + Space` application menu. Install bemenu so `bemenu-run` is available in the Hyprland session's `PATH`. `SUPER + 0` selects workspace 10; shifted number bindings move the active window to the corresponding workspace.
 
 | Keys | Action |
 | --- | --- |
+| `SUPER + d` | Open `bemenu-run` to launch an executable by name |
 | `SUPER + h/j/k/l` | Focus left/down/up/right |
 | `SUPER + SHIFT + h/j/k/l` | Plain config: move the active window. Omarchy Lua mode: context-aware move/swap or group action (see below) |
 | `SUPER + b` / `SUPER + v` | Toggle horizontal / vertical split |

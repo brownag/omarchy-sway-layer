@@ -37,6 +37,8 @@ for direction, keys in pairs({
     assert(a.command == b.command and a.command:match("sway%-group%-move' " .. direction .. "$"))
 end
 assert(unbound["SUPER + Q"] and unbound["SUPER + W"])
+assert(bindings["SUPER + D"].action.name == "exec")
+assert(bindings["SUPER + D"].action.command == "bemenu-run")
 assert(bindings["SUPER + W"].action.name == "group-toggle")
 assert(bindings["SUPER + SHIFT + Q"].action.name == "close")
 assert(not bindings["SUPER + Q"])

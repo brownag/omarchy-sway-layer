@@ -6,10 +6,10 @@ direction=$1
 case $direction in l|r|u|d) ;; *) exit 2 ;; esac
 
 active=$(hyprctl -j activewindow 2>/dev/null) || exit 1
-clients=$(hyprctl -j clients 2>/dev/null) || {
-    hyprctl dispatch swapwindow "$direction" >/dev/null 2>&1 || true
+if ! clients=$(hyprctl -j clients 2>/dev/null); then
+    hyprctl dispatch "hl.dsp.window.swap({ direction = \"$direction\" })" || exit 1
     exit 0
-}
+fi
 
 # Query geometry rather than dispatching focus and trying to restore it: probing
 # must not alter the active window, even when a later command fails.
@@ -38,8 +38,8 @@ selection=$(jq -er --argjson active "$active" --arg direction "$direction" '
 ' <<<"$clients" 2>/dev/null) || selection=none
 
 case $selection in
-    out) hyprctl dispatch moveoutofgroup "$direction" >/dev/null 2>&1 || true ;;
-    into) hyprctl dispatch moveintogroup "$direction" >/dev/null 2>&1 || true ;;
-    swap) hyprctl dispatch swapwindow "$direction" >/dev/null 2>&1 || true ;;
+    out) hyprctl dispatch 'hl.dsp.window.move({ out_of_group = true })' ;;
+    into) hyprctl dispatch "hl.dsp.window.move({ into_group = \"$direction\" })" ;;
+    swap) hyprctl dispatch "hl.dsp.window.swap({ direction = \"$direction\" })" ;;
     none) ;;
 esac

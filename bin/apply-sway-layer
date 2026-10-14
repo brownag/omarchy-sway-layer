@@ -246,7 +246,8 @@ resolve_backup() {
 }
 
 rollback_layer() {
-    local backup_dir=$1 manifest="$backup_dir/manifest.txt" present source destination
+    local backup_dir=$1 manifest present source destination
+    manifest="$backup_dir/manifest.txt"
     if ((DRY_RUN)); then
         printf 'DRY RUN: restore snapshot %s\n' "$backup_dir"
         for present in HYPR WAYBAR QUICKSHELL; do

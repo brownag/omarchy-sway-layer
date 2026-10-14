@@ -25,3 +25,16 @@ Make the Sway-style bindings actually register when Omarchy loads the Lua config
 - Omarchy's local `bindings.lua` comments show the user API (`o.bind`, `hl.unbind`); `/usr/share/omarchy/default/hypr/helpers.lua` defines `o.bind`, and `bindings/tiling.lua` provides reference dispatcher patterns. Treat these files as read-only references.
 - Do not modify Omarchy's `/usr/share/omarchy` or `~/.local/share/omarchy` files. Deployment through the project CLI creates a timestamped user-config backup before copying the updated managed Lua file.
 - This is a focused fix for the Omarchy Lua path; no unrelated installer, bar, or configuration refactors.
+
+## Follow-up Goal
+Restore `make test` after ShellCheck was installed by fixing its reported warnings without changing runtime behavior.
+
+## Follow-up Tasks
+
+### 4. Fix ShellCheck warnings
+- [x] Split the `backup_dir` / `manifest` local declarations in `bin/apply-sway-layer` so `manifest` expands after `backup_dir` is assigned.
+- [x] Initialize the three presence flags in `scripts/backup.sh` before the indirect `printf -v` assignments so ShellCheck recognizes them. Targeted ShellCheck and Bash syntax checks passed.
+
+### 5. Validate and commit
+- [x] Run targeted ShellCheck, then `make test`; `make test` passed with `make test: all static checks passed`.
+- [x] Create a conventional fix commit after all checks pass.

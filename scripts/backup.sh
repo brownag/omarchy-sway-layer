@@ -29,6 +29,10 @@ copy_if_present() {
     fi
 }
 
+hypr_present=0
+waybar_present=0
+quickshell_present=0
+
 copy_if_present "$hypr_source" "$backup_dir/hypr" hypr_present
 copy_if_present "$waybar_source" "$backup_dir/waybar" waybar_present
 copy_if_present "$quickshell_source" "$backup_dir/quickshell" quickshell_present

@@ -24,7 +24,7 @@ Recorded 2026-10-15 by the orchestrator on `main` @ `2503b39`.
 | 1 | 4.1.1 Wrapper core + test | — | done |
 | 2 | 4.2.1 Opt-in install + binding rewrite + backup/uninstall | 4.1.1 | done |
 | 3 | 4.3.1 Docs + ADR 0004 | 4.2.1 | done |
-| 4 | 4.4.1 Theme-fidelity fixtures + contrast | 4.1.1 | pending |
+| 4 | 4.4.1 Theme-fidelity fixtures + contrast | 4.1.1 | done |
 
 ## Task reports
 
@@ -85,6 +85,23 @@ Recorded 2026-10-15 by the orchestrator on `main` @ `2503b39`.
   config grep; that assertion is unchanged.
 - Validation: all three new `grep -Fq` assertions exit 0; Makefile recipe structure
   intact. Full `make test` not run (orchestrator owns it). No commit made.
+
+## 4.4.1
+
+- `tests/test-bemenu-themed.sh`: added dark (`$tmp/dark-colors.toml`) and light
+  (`$tmp/light-colors.toml`) palette fixtures plus `contrast_ratio` and
+  `assert_palette_mapping` helpers.
+- Each fixture runs through the wrapper with the resolver absent (isolated `$nobin`
+  PATH -> direct `sed` read) and `OMARCHY_THEME_COLORS` at the fixture; all 18 mapped
+  flags (`--nb/--nf/--hb/--sb/--hf/--sf/--tb/--tf/--fb/--ff/--cb/--cf/--fbb/--fbf/`
+  `--ab/--af/--scb/--scf`) are asserted verbatim (guards channel-order/pass-through).
+- Informational contrast (no threshold) of `--hf` on `--hb`: dark `#f7e8b2` on
+  `#32473b` = 8.16:1; light `#002b36` on `#d8d2b8` = 9.89:1.
+- Validation: `bash -n` OK; `shellcheck` OK; `bash tests/test-bemenu-themed.sh` passed.
+  Full `make test` not run (orchestrator owns it). No commit made.
+- Manual visual check: NOT performed by the worker (cannot view the rendered menu).
+  Environment for the human check: monitor `LVDS-1` (AU Optronics 0x315C), active
+  theme `osaka-jade` (dark). Disposition: deferred to orchestrator/user.
 
 ## Manual checks
 

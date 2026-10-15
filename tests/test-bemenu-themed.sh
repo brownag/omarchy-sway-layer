@@ -139,4 +139,93 @@ tty_out=$(PATH="$run_path" OMARCHY_THEME_COLORS="$tmp/colors.toml" \
   script -qec "bash \"$wrapper\"" /dev/null)
 contains "$tty_out" 'BEMENU-RUN:' 'TTY stdin selects bemenu-run'
 
+# --- Theme-fidelity fixtures: every mapped flag must carry the palette value
+# verbatim (guards bemenu channel-order and pass-through assumptions). ---
+
+# Informational WCAG contrast ratio of two #RRGGBB colors. No pass/fail threshold.
+contrast_ratio() {
+  local fg="${1#\#}" bg="${2#\#}"
+  local fr=$((16#${fg:0:2})) fgn=$((16#${fg:2:2})) fb=$((16#${fg:4:2}))
+  local br=$((16#${bg:0:2})) bgn=$((16#${bg:2:2})) bb=$((16#${bg:4:2}))
+  awk -v fr="$fr" -v fgn="$fgn" -v fb="$fb" \
+      -v br="$br" -v bgn="$bgn" -v bb="$bb" '
+    function comp(c) { c /= 255; return c <= 0.03928 ? c/12.92 : ((c+0.055)/1.055)^2.4 }
+    function lum(r, g, b) { return 0.2126*comp(r) + 0.7152*comp(g) + 0.0722*comp(b) }
+    BEGIN {
+      l1 = lum(fr, fgn, fb); l2 = lum(br, bgn, bb)
+      if (l1 < l2) { t = l1; l1 = l2; l2 = t }
+      printf "%.2f", (l1 + 0.05) / (l2 + 0.05)
+    }'
+}
+
+# Assert the wrapper reproduced each palette key under the expected flag(s).
+# args: label, output, background, foreground, accent, selection_background,
+#       bright_foreground, muted, lighter_background, darker_background
+assert_palette_mapping() {
+  local label="$1" out="$2" bg="$3" fg="$4" accent="$5" sel="$6" \
+    bright="$7" muted="$8" lighter="$9" darker="${10}"
+  contains "$out" "--nb $bg"      "$label --nb=background"
+  contains "$out" "--nf $fg"      "$label --nf=foreground"
+  contains "$out" "--hb $sel"     "$label --hb=selection_background"
+  contains "$out" "--sb $sel"     "$label --sb=selection_background"
+  contains "$out" "--hf $bright"  "$label --hf=bright_foreground"
+  contains "$out" "--sf $bright"  "$label --sf=bright_foreground"
+  contains "$out" "--tb $bg"      "$label --tb=background"
+  contains "$out" "--tf $fg"      "$label --tf=foreground"
+  contains "$out" "--fb $bg"      "$label --fb=background"
+  contains "$out" "--ff $accent"  "$label --ff=accent"
+  contains "$out" "--cb $accent"  "$label --cb=accent"
+  contains "$out" "--cf $bg"      "$label --cf=background"
+  contains "$out" "--fbb $bg"     "$label --fbb=background"
+  contains "$out" "--fbf $muted"  "$label --fbf=muted"
+  contains "$out" "--ab $lighter" "$label --ab=lighter_background"
+  contains "$out" "--af $muted"   "$label --af=muted"
+  contains "$out" "--scb $darker" "$label --scb=darker_background"
+  contains "$out" "--scf $muted"  "$label --scf=muted"
+}
+
+cat >"$tmp/dark-colors.toml" <<'EOF'
+background = "#111c18"
+foreground = "#c1c497"
+accent = "#509475"
+selection_background = "#32473b"
+bright_foreground = "#f7e8b2"
+muted = "#53685b"
+lighter_background = "#23372b"
+darker_background = "#090f0d"
+EOF
+
+cat >"$tmp/light-colors.toml" <<'EOF'
+background = "#fdf6e3"
+foreground = "#073642"
+accent = "#268bd2"
+selection_background = "#d8d2b8"
+bright_foreground = "#002b36"
+muted = "#93a1a1"
+lighter_background = "#eee8d5"
+darker_background = "#e4ddc8"
+EOF
+
+# Dark palette, resolver absent (isolated PATH): direct read must reproduce it.
+dark_bg='#111c18'; dark_fg='#c1c497'; dark_accent='#509475'; dark_sel='#32473b'
+dark_bright='#f7e8b2'; dark_muted='#53685b'; dark_lighter='#23372b'; dark_darker='#090f0d'
+dark_out=$(printf '' | PATH="$nobin" OMARCHY_THEME_COLORS="$tmp/dark-colors.toml" \
+  "$bash_bin" "$wrapper")
+contains "$dark_out" 'BEMENU:' 'dark fixture selects bemenu'
+assert_palette_mapping dark "$dark_out" "$dark_bg" "$dark_fg" "$dark_accent" \
+  "$dark_sel" "$dark_bright" "$dark_muted" "$dark_lighter" "$dark_darker"
+printf 'test-bemenu-themed: informational: dark --hf=%s on --hb=%s contrast %s:1\n' \
+  "$dark_bright" "$dark_sel" "$(contrast_ratio "$dark_bright" "$dark_sel")"
+
+# Light palette, resolver absent: same verbatim guarantees.
+light_bg='#fdf6e3'; light_fg='#073642'; light_accent='#268bd2'; light_sel='#d8d2b8'
+light_bright='#002b36'; light_muted='#93a1a1'; light_lighter='#eee8d5'; light_darker='#e4ddc8'
+light_out=$(printf '' | PATH="$nobin" OMARCHY_THEME_COLORS="$tmp/light-colors.toml" \
+  "$bash_bin" "$wrapper")
+contains "$light_out" 'BEMENU:' 'light fixture selects bemenu'
+assert_palette_mapping light "$light_out" "$light_bg" "$light_fg" "$light_accent" \
+  "$light_sel" "$light_bright" "$light_muted" "$light_lighter" "$light_darker"
+printf 'test-bemenu-themed: informational: light --hf=%s on --hb=%s contrast %s:1\n' \
+  "$light_bright" "$light_sel" "$(contrast_ratio "$light_bright" "$light_sel")"
+
 printf 'test-bemenu-themed: passed\n'

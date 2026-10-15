@@ -105,9 +105,12 @@ Recorded 2026-10-15 by the orchestrator on `main` @ `2503b39`.
 
 ## Manual checks
 
-- [ ] **4.4.1 appearance** (deferred, D6): with `--enable-bemenu-themed` installed,
-      open `SUPER+D` under the active dark theme and one light theme; confirm the menu
-      is centered and readable. Record monitor, themes, result.
+- [x] **4.4.1 appearance** (D6): confirmed by the user after the null-stdin hotfix
+      (`a322984`). `SUPER+D` opens the centered, themed, searchable command list on
+      monitor `LVDS-1` (AU Optronics 0x315C) under the active dark theme `osaka-jade`.
+      A separate light-theme visual pass was not performed; the automated light
+      fixture in `tests/test-bemenu-themed.sh` covers palette mapping and contrast
+      (9.89:1).
 
 ## Discovered defects
 

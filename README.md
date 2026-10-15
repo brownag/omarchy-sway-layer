@@ -27,6 +27,8 @@ A themed launcher is optional too. To install a centered, theme-aware bemenu wra
 
 ```sh
 ./bin/apply-sway-layer --enable-bemenu-themed
+# or
+make install-bemenu-themed
 ```
 
 This installs `bemenu-themed` to your user bin dir (`${XDG_BIN_HOME:-$HOME/.local/bin}`), repoints `SUPER+D` at it, and is removed by `--uninstall`. The wrapper reads the live Omarchy palette on every invocation, so it follows theme changes with no hook. The default install leaves `SUPER+D` on `bemenu-run`.

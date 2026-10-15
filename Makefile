@@ -1,7 +1,10 @@
-.PHONY: install uninstall test lint
+.PHONY: install install-bemenu-themed uninstall test lint
 
 install:
 	./bin/apply-sway-layer
+
+install-bemenu-themed:
+	./bin/apply-sway-layer --enable-bemenu-themed
 
 uninstall:
 	./bin/apply-sway-layer --uninstall

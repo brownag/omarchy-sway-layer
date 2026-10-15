@@ -35,6 +35,9 @@ test:
 	grep -Fq 'bind = SUPER SHIFT, UP, exec, sh -c' config/hypr/binds_sway.conf; \
 	grep -Fq 'bind = SUPER SHIFT, RIGHT, exec, sh -c' config/hypr/binds_sway.conf; \
 	grep -Fq 'bind = SUPER, d, exec, bemenu-run' config/hypr/binds_sway.conf; \
+	grep -Fq -- '--enable-bemenu-themed' README.md; \
+	grep -Fq '0004-live-palette-wrapper-for-bemenu' docs/decisions/README.md; \
+	grep -Fq 'scripts/bemenu-themed' AGENTS.md; \
 	grep -Fq 'bind = SUPER, b, togglesplit, horizontal' config/hypr/binds_sway.conf; \
 	grep -Fq 'bind = SUPER, v, togglesplit, vertical' config/hypr/binds_sway.conf; \
 	grep -Fq 'binde = , LEFT, resizeactive, -20 0' config/hypr/binds_sway.conf; \

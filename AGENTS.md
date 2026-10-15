@@ -16,6 +16,7 @@ Run deployment commands only when you intend to change the active user's configu
 - `config/waybar/` — managed Waybar JSONC config and CSS.
 - `config/quickshell/` — Quickshell override artifact.
 - `scripts/` — Omarchy/config detection, backups, and Lua-mode group movement helper.
+- `scripts/bemenu-themed` — theme-aware, centered bemenu wrapper installed opt-in by `--enable-bemenu-themed`.
 - `tests/` — shell installer/helper tests and Lua binding tests.
 - `docs/decisions/` — architecture decision records.
 - `planning/` — execution plans, task notes, research, and orchestration state.

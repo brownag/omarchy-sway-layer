@@ -23,9 +23,17 @@ Waybar is optional. To use the included config, install with:
 
 The default install leaves your bar unchanged. If you enable Waybar, check that your existing setup does not start another bar.
 
+A themed launcher is optional too. To install a centered, theme-aware bemenu wrapper:
+
+```sh
+./bin/apply-sway-layer --enable-bemenu-themed
+```
+
+This installs `bemenu-themed` to your user bin dir (`${XDG_BIN_HOME:-$HOME/.local/bin}`), repoints `SUPER+D` at it, and is removed by `--uninstall`. The wrapper reads the live Omarchy palette on every invocation, so it follows theme changes with no hook. The default install leaves `SUPER+D` on `bemenu-run`.
+
 ## Keybindings
 
-`SUPER` is the modifier. `SUPER+D` runs `bemenu-run`; install bemenu to use it.
+`SUPER` is the modifier. `SUPER+D` runs `bemenu-run` by default; install bemenu to use it. The `--enable-bemenu-themed` install repoints it at the `bemenu-themed` wrapper.
 
 | Keys | Action |
 | --- | --- |

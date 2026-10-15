@@ -23,7 +23,7 @@ Recorded 2026-10-15 by the orchestrator on `main` @ `2503b39`.
 | --- | --- | --- | --- |
 | 1 | 4.1.1 Wrapper core + test | — | done |
 | 2 | 4.2.1 Opt-in install + binding rewrite + backup/uninstall | 4.1.1 | done |
-| 3 | 4.3.1 Docs + ADR 0004 | 4.2.1 | pending |
+| 3 | 4.3.1 Docs + ADR 0004 | 4.2.1 | done |
 | 4 | 4.4.1 Theme-fidelity fixtures + contrast | 4.1.1 | pending |
 
 ## Task reports
@@ -69,6 +69,22 @@ Recorded 2026-10-15 by the orchestrator on `main` @ `2503b39`.
 - Validation: `bash -n` OK; `shellcheck` OK; `bash tests/test-sway-installer.sh`
   passed; scratch backup/rollback verified both present=1 restore and pre-install
   present=0 removal. Full `make test` not run (orchestrator owns it). No commit made.
+
+## 4.3.1
+
+- `README.md`: `SUPER+D` note now says it runs `bemenu-run` **by default**; added an
+  opt-in `--enable-bemenu-themed` block (installs `bemenu-themed` to
+  `${XDG_BIN_HOME:-$HOME/.local/bin}`, repoints `SUPER+D`, removed by `--uninstall`,
+  reads the live palette with no hook).
+- `AGENTS.md`: added `scripts/bemenu-themed` to "Find Things".
+- New `docs/decisions/0004-live-palette-wrapper-for-bemenu.md` (Accepted, 2026-10-15,
+  0003 structure): live-read wrapper over `themed/*.tpl`/`theme-set` hook, opt-in
+  install repoints the managed binding; source binding stays `bemenu-run`.
+- `docs/decisions/README.md`: added the 0004 row (Accepted, no supersedes).
+- `Makefile`: added the three doc grep assertions next to the existing `bemenu-run`
+  config grep; that assertion is unchanged.
+- Validation: all three new `grep -Fq` assertions exit 0; Makefile recipe structure
+  intact. Full `make test` not run (orchestrator owns it). No commit made.
 
 ## Manual checks
 

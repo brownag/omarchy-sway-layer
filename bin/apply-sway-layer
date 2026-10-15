@@ -4,9 +4,11 @@ set -euo pipefail
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 REPO_ROOT=$(cd -- "$SCRIPT_DIR/.." && pwd)
 CONFIG_HOME=${XDG_CONFIG_HOME:-"${HOME:?HOME must be set}/.config"}
+BIN_HOME=${XDG_BIN_HOME:-"${HOME:?HOME must be set}/.local/bin"}
 BACKUP_ROOT=${OMARCHY_SWAY_BACKUP_ROOT:-"$CONFIG_HOME/omarchy-sway-backup"}
 DRY_RUN=0
 ENABLE_WAYBAR=0
+ENABLE_BEMENU_THEMED=0
 ACTION=install
 ROLLBACK_TARGET=
 SOURCE_LINE='source = ~/.config/hypr/binds_sway.conf'
@@ -15,7 +17,7 @@ WAYBAR_LINE='exec-once = waybar -c ~/.config/waybar/sway-dense.jsonc -s ~/.confi
 
 usage() {
     cat <<'USAGE'
-Usage: apply-sway-layer [--enable-waybar] [-n|--dry-run]
+Usage: apply-sway-layer [--enable-waybar] [--enable-bemenu-themed] [-n|--dry-run]
        apply-sway-layer --uninstall [-n|--dry-run]
        apply-sway-layer --rollback latest|TIMESTAMP [-n|--dry-run]
        apply-sway-layer -h|--help
@@ -33,6 +35,7 @@ parse_args() {
     while (($#)); do
         case $1 in
             --enable-waybar) ENABLE_WAYBAR=1 ;;
+            --enable-bemenu-themed) ENABLE_BEMENU_THEMED=1 ;;
             -n|--dry-run) DRY_RUN=1 ;;
             --uninstall)
                 [[ $ACTION == install ]] || fail 'choose only one operation'
@@ -51,6 +54,7 @@ parse_args() {
         shift
     done
     [[ $ACTION == install || $ENABLE_WAYBAR == 0 ]] || fail '--enable-waybar is only valid during install'
+    [[ $ACTION == install || $ENABLE_BEMENU_THEMED == 0 ]] || fail '--enable-bemenu-themed is only valid during install'
 }
 
 load_detection() {
@@ -111,6 +115,65 @@ remove_line() {
     fi
 }
 
+# Replace whole lines that exactly equal `old` with `replacement`.
+replace_line() {
+    local path=$1 old=$2 replacement=$3 tmp
+    [[ -f $path ]] || return 0
+    tmp=$(mktemp "${path}.XXXXXX")
+    awk -v wanted="$old" -v replacement="$replacement" '$0 == wanted { print replacement; next } { print }' "$path" >"$tmp"
+    if cmp -s -- "$path" "$tmp"; then
+        rm -f -- "$tmp"
+    else
+        cat -- "$tmp" >"$path"
+        rm -f -- "$tmp"
+    fi
+}
+
+# Replace every literal occurrence of `from` with `to` (no regex interpretation).
+replace_text() {
+    local path=$1 from=$2 to=$3 tmp
+    [[ -f $path ]] || return 0
+    tmp=$(mktemp "${path}.XXXXXX")
+    awk -v from="$from" -v to="$to" '
+        {
+            out = ""
+            rest = $0
+            while ((i = index(rest, from)) > 0) {
+                out = out substr(rest, 1, i - 1) to
+                rest = substr(rest, i + length(from))
+            }
+            print out rest
+        }
+    ' "$path" >"$tmp"
+    if cmp -s -- "$path" "$tmp"; then
+        rm -f -- "$tmp"
+    else
+        cat -- "$tmp" >"$path"
+        rm -f -- "$tmp"
+    fi
+}
+
+# Repoint the managed SUPER+D launcher at the themed wrapper.
+rewrite_bemenus() {
+    local conf=$1 lua=$2
+    replace_line "$conf" 'bind = SUPER, d, exec, bemenu-run' 'bind = SUPER, d, exec, bemenu-themed'
+    replace_text "$lua" 'bemenu-run' 'bemenu-themed'
+}
+
+bin_home_in_path() {
+    local entry
+    while IFS= read -r entry; do
+        [[ $entry == "$BIN_HOME" ]] && return 0
+    done < <(printf '%s' "${PATH:-}" | tr ':' '\n')
+    return 1
+}
+
+warn_bin_home_not_in_path() {
+    if ! bin_home_in_path; then
+        printf 'apply-sway-layer: warning: %s is not in PATH; add it to run bemenu-themed\n' "$BIN_HOME" >&2
+    fi
+}
+
 copy_managed() {
     local source=$1 destination=$2
     mkdir -p -- "$(dirname -- "$destination")"
@@ -127,13 +190,27 @@ write_managed_files() {
 }
 
 show_managed_file_diffs() {
-    local source destination
+    local source destination effective
     while IFS=' ' read -r source destination; do
+        effective=$source
+        case ${destination##*/} in
+            binds_sway.conf|sway_bindings.lua)
+                if ((ENABLE_BEMENU_THEMED)); then
+                    effective=$(mktemp)
+                    cp -- "$source" "$effective"
+                    case ${destination##*/} in
+                        binds_sway.conf) replace_line "$effective" 'bind = SUPER, d, exec, bemenu-run' 'bind = SUPER, d, exec, bemenu-themed' ;;
+                        sway_bindings.lua) replace_text "$effective" 'bemenu-run' 'bemenu-themed' ;;
+                    esac
+                fi
+                ;;
+        esac
         if [[ -e $destination ]]; then
-            diff -u --label "$destination (before)" --label "$destination (after)" "$destination" "$source" || [[ $? == 1 ]]
+            diff -u --label "$destination (before)" --label "$destination (after)" "$destination" "$effective" || [[ $? == 1 ]]
         else
-            diff -u --label /dev/null --label "$destination (after)" /dev/null "$source" || [[ $? == 1 ]]
+            diff -u --label /dev/null --label "$destination (after)" /dev/null "$effective" || [[ $? == 1 ]]
         fi
+        if [[ $effective != "$source" ]]; then rm -f -- "$effective"; fi
     done <<EOF
 $REPO_ROOT/config/hypr/binds_sway.conf $CONFIG_HOME/hypr/binds_sway.conf
 $REPO_ROOT/config/hypr/binds_sway.lua $CONFIG_HOME/hypr/sway_bindings.lua
@@ -158,6 +235,15 @@ EOF
         local exec_target="$CONFIG_HOME/hypr/hyprland.conf"
         [[ ${DETECTION[USER_CUSTOM_CONF]:-0} != 1 ]] || exec_target="$CONFIG_HOME/hypr/user_custom.conf"
         print_file_diff "$exec_target" "$WAYBAR_LINE"
+    fi
+    if ((ENABLE_BEMENU_THEMED)); then
+        local wrapper_source="$REPO_ROOT/scripts/bemenu-themed"
+        local wrapper_target="$BIN_HOME/bemenu-themed"
+        if [[ -e $wrapper_target ]]; then
+            diff -u --label "$wrapper_target (before)" --label "$wrapper_target (after)" "$wrapper_target" "$wrapper_source" || [[ $? == 1 ]]
+        else
+            diff -u --label /dev/null --label "$wrapper_target (after)" /dev/null "$wrapper_source" || [[ $? == 1 ]]
+        fi
     fi
 }
 
@@ -199,6 +285,13 @@ install_layer() {
         [[ ${DETECTION[USER_CUSTOM_CONF]:-0} != 1 ]] || exec_target="$CONFIG_HOME/hypr/user_custom.conf"
         ensure_line "$exec_target" "$WAYBAR_LINE"
     fi
+    if ((ENABLE_BEMENU_THEMED)); then
+        mkdir -p -- "$BIN_HOME"
+        cp -- "$REPO_ROOT/scripts/bemenu-themed" "$BIN_HOME/bemenu-themed"
+        chmod +x -- "$BIN_HOME/bemenu-themed"
+        rewrite_bemenus "$CONFIG_HOME/hypr/binds_sway.conf" "$CONFIG_HOME/hypr/sway_bindings.lua"
+        warn_bin_home_not_in_path
+    fi
     reload_session
     printf 'Sway layer installed.\n'
 }
@@ -212,6 +305,7 @@ uninstall_layer() {
         "$CONFIG_HOME/waybar/sway-dense.jsonc"
         "$CONFIG_HOME/waybar/sway-dense.css"
         "$CONFIG_HOME/quickshell/BarOverrides.qml"
+        "$BIN_HOME/bemenu-themed"
     )
     if ((DRY_RUN)); then
         printf 'DRY RUN: remove managed files and lines only.\n'
@@ -253,24 +347,26 @@ rollback_layer() {
     manifest="$backup_dir/manifest.txt"
     if ((DRY_RUN)); then
         printf 'DRY RUN: restore snapshot %s\n' "$backup_dir"
-        for present in HYPR WAYBAR QUICKSHELL; do
+        for present in HYPR WAYBAR QUICKSHELL BEMENU; do
             source=
             destination=
             case $present in
                 HYPR) source="$backup_dir/hypr"; destination="$CONFIG_HOME/hypr" ;;
                 WAYBAR) source="$backup_dir/waybar"; destination="$CONFIG_HOME/waybar" ;;
                 QUICKSHELL) source="$backup_dir/quickshell"; destination="$CONFIG_HOME/quickshell" ;;
+                BEMENU) source="$backup_dir/bemenu-themed"; destination="$BIN_HOME/bemenu-themed" ;;
             esac
             if grep -Fqx "${present}_PRESENT=1" "$manifest"; then printf 'restore %s -> %s\n' "$source" "$destination"; else printf 'remove %s (absent in snapshot)\n' "$destination"; fi
         done
         return 0
     fi
     local temp_manifest="$backup_dir/manifest.txt"
-    for present in HYPR WAYBAR QUICKSHELL; do
+    for present in HYPR WAYBAR QUICKSHELL BEMENU; do
         case $present in
             HYPR) source="$backup_dir/hypr"; destination="$CONFIG_HOME/hypr" ;;
             WAYBAR) source="$backup_dir/waybar"; destination="$CONFIG_HOME/waybar" ;;
             QUICKSHELL) source="$backup_dir/quickshell"; destination="$CONFIG_HOME/quickshell" ;;
+            BEMENU) source="$backup_dir/bemenu-themed"; destination="$BIN_HOME/bemenu-themed" ;;
         esac
         if grep -Fqx "${present}_PRESENT=1" "$temp_manifest"; then
             [[ -e $source || -L $source ]] || fail "backup snapshot is incomplete: $source"

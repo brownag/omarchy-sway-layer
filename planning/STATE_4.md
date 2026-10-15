@@ -22,7 +22,7 @@ Recorded 2026-10-15 by the orchestrator on `main` @ `2503b39`.
 | Wave | Task | Depends on | Status |
 | --- | --- | --- | --- |
 | 1 | 4.1.1 Wrapper core + test | — | done |
-| 2 | 4.2.1 Opt-in install + binding rewrite + backup/uninstall | 4.1.1 | pending |
+| 2 | 4.2.1 Opt-in install + binding rewrite + backup/uninstall | 4.1.1 | done |
 | 3 | 4.3.1 Docs + ADR 0004 | 4.2.1 | pending |
 | 4 | 4.4.1 Theme-fidelity fixtures + contrast | 4.1.1 | pending |
 
@@ -48,6 +48,27 @@ Recorded 2026-10-15 by the orchestrator on `main` @ `2503b39`.
   passed. Full `make test` not run (orchestrator owns it). No commit made.
 - Risk: TTY dispatch test depends on util-linux `script` (present here; not in the
   Makefile's required-tool list).
+
+## 4.2.1
+
+- `bin/apply-sway-layer`: added `--enable-bemenu-themed` (install-only guard mirroring
+  `--enable-waybar`), `BIN_HOME=${XDG_BIN_HOME:-$HOME/.local/bin}`, reusable
+  `replace_line` (exact line) / `replace_text` (literal substring) helpers,
+  `rewrite_bemenus`, and `bin_home_in_path`/`warn_bin_home_not_in_path` (stderr,
+  no hard fail; not emitted on `--dry-run`).
+- Install: copies `scripts/bemenu-themed` -> `$BIN_HOME/bemenu-themed` (`chmod +x`),
+  rewrites the *copied* `binds_sway.conf`/`sway_bindings.lua`; uninstall removes the
+  wrapper; dry-run prints wrapper + rewritten-binding diffs (reuses the replace
+  helpers on temp copies so preview can't drift).
+- `scripts/backup.sh`: snapshots `$BIN_HOME/bemenu-themed` and records
+  `BEMENU_PRESENT`/`BEMENU_SOURCE`; `rollback_layer` gained an explicit `BEMENU)`
+  branch; HYPR/WAYBAR/QUICKSHELL behavior unchanged.
+- `tests/test-sway-installer.sh`: adds default-install (no wrapper, binding stays
+  `bemenu-run`), opt-in install (wrapper + both bindings rewritten, repo sources
+  intact), dry-run diff, missing-`PATH` warning, and uninstall-removes-wrapper cases.
+- Validation: `bash -n` OK; `shellcheck` OK; `bash tests/test-sway-installer.sh`
+  passed; scratch backup/rollback verified both present=1 restore and pre-install
+  present=0 removal. Full `make test` not run (orchestrator owns it). No commit made.
 
 ## Manual checks
 

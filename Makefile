@@ -14,8 +14,8 @@ test:
 			exit 1; \
 		fi; \
 	done; \
-	bash -n bin/apply-sway-layer scripts/backup.sh scripts/detect_omarchy.sh scripts/sway-group-move tests/test-sway-group-move.sh tests/test-sway-installer.sh; \
-	shellcheck bin/apply-sway-layer scripts/backup.sh scripts/detect_omarchy.sh scripts/sway-group-move tests/test-sway-group-move.sh tests/test-sway-installer.sh; \
+	bash -n bin/apply-sway-layer scripts/backup.sh scripts/detect_omarchy.sh scripts/sway-group-move scripts/bemenu-themed tests/test-sway-group-move.sh tests/test-sway-installer.sh tests/test-bemenu-themed.sh; \
+	shellcheck bin/apply-sway-layer scripts/backup.sh scripts/detect_omarchy.sh scripts/sway-group-move scripts/bemenu-themed tests/test-sway-group-move.sh tests/test-sway-installer.sh tests/test-bemenu-themed.sh; \
 	json_tmp=$$(mktemp); \
 	trap 'rm -f "$$json_tmp"' EXIT HUP INT TERM; \
 	cp config/waybar/config.jsonc "$$json_tmp"; \
@@ -23,6 +23,7 @@ test:
 	luac -p config/hypr/binds_sway.lua tests/test-sway-bindings.lua; \
 	bash tests/test-sway-group-move.sh; \
 	bash tests/test-sway-installer.sh; \
+	bash tests/test-bemenu-themed.sh; \
 	lua tests/test-sway-bindings.lua; \
 	grep -Fq 'bind = SUPER, h, movefocus, l' config/hypr/binds_sway.conf; \
 	grep -Fq 'bind = SUPER, LEFT, movefocus, l' config/hypr/binds_sway.conf; \

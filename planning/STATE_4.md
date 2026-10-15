@@ -21,7 +21,7 @@ Recorded 2026-10-15 by the orchestrator on `main` @ `2503b39`.
 
 | Wave | Task | Depends on | Status |
 | --- | --- | --- | --- |
-| 1 | 4.1.1 Wrapper core + test | — | pending |
+| 1 | 4.1.1 Wrapper core + test | — | done |
 | 2 | 4.2.1 Opt-in install + binding rewrite + backup/uninstall | 4.1.1 | pending |
 | 3 | 4.3.1 Docs + ADR 0004 | 4.2.1 | pending |
 | 4 | 4.4.1 Theme-fidelity fixtures + contrast | 4.1.1 | pending |
@@ -29,6 +29,25 @@ Recorded 2026-10-15 by the orchestrator on `main` @ `2503b39`.
 ## Task reports
 
 <!-- Workers append a <=15-line report under a "## <id>" heading here. -->
+
+## 4.1.1
+
+- Created `scripts/bemenu-themed` (executable, `set -euo pipefail`): live palette
+  resolution via `omarchy-theme-color` with a `sed` direct-read fallback that
+  captures the leading `#`; 16 key→flag color mappings; centered geometry defaults;
+  `exec bemenu-run` on TTY stdin else `exec bemenu`, passing `"$@"`.
+- Created `tests/test-bemenu-themed.sh` (no Wayland needed): stub `bemenu`,
+  `bemenu-run`, keyed `omarchy-theme-color`; asserts geometry/`--fn`, resolver
+  mappings for every region, direct-read fallback with the resolver genuinely absent
+  (isolated PATH excluding `/usr/bin`), and TTY (`script -qec`) selects `bemenu-run`
+  while a pipe selects `bemenu`.
+- Wired `scripts/bemenu-themed` + `tests/test-bemenu-themed.sh` into the Makefile
+  `bash -n` and `shellcheck` lists and added the test to the `test` recipe; the
+  `bind = SUPER, d, exec, bemenu-run` grep assertion is unchanged.
+- Validation: `bash -n` OK; `shellcheck` OK; `bash tests/test-bemenu-themed.sh`
+  passed. Full `make test` not run (orchestrator owns it). No commit made.
+- Risk: TTY dispatch test depends on util-linux `script` (present here; not in the
+  Makefile's required-tool list).
 
 ## Manual checks
 

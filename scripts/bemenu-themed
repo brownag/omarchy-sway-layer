@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# bemenu-themed — run bemenu/bemenu-run with the active Omarchy theme palette,
+# centered. Resolves the live palette on every invocation; no hook or template.
+set -euo pipefail
+
+colors_file="${OMARCHY_THEME_COLORS:-$HOME/.local/state/omarchy/current/theme/colors.toml}"
+
+omarchy_color() {
+  local key="$1" fallback="${2:-}" value
+  if command -v omarchy-theme-color >/dev/null 2>&1 \
+     && value=$(omarchy-theme-color --file "$colors_file" "$key" "$fallback" 2>/dev/null) \
+     && [[ -n $value ]]; then
+    printf '%s' "$value"
+    return 0
+  fi
+  value=$(sed -nE "s/^[[:space:]]*${key}[[:space:]]*=[[:space:]]*\"?([^\"]*)\"?.*/\1/p" \
+            "$colors_file" 2>/dev/null | head -n1)
+  [[ -n $value ]] || value="$fallback"
+  printf '%s' "$value"
+}
+
+bg=$(omarchy_color background '#111111')
+fg=$(omarchy_color foreground '#dddddd')
+accent=$(omarchy_color accent "$fg")
+sel=$(omarchy_color selection_background "$accent")
+muted=$(omarchy_color muted "$fg")
+bright=$(omarchy_color bright_foreground "$fg")
+lighter=$(omarchy_color lighter_background "$bg")
+darker=$(omarchy_color darker_background "$bg")
+
+font="${BEMENU_FONT:-JetBrainsMono Nerd Font 12}"
+
+opts=(
+  -c --fixed-height
+  -l "${BEMENU_LINES:-10}"
+  -W "${BEMENU_WIDTH:-0.4}"
+  -M "${BEMENU_MARGIN:-8}"
+  -B "${BEMENU_BORDER:-2}"
+  -R "${BEMENU_RADIUS:-8}"
+  -H "${BEMENU_LINE_HEIGHT:-26}"
+  --fn "$font"
+  --tb "$bg"      --tf "$fg"
+  --fb "$bg"      --ff "$accent"
+  --cb "$accent"  --cf "$bg"
+  --nb "$bg"      --nf "$fg"
+  --hb "$sel"     --hf "$bright"
+  --sb "$sel"     --sf "$bright"
+  --fbb "$bg"     --fbf "$muted"
+  --ab "$lighter" --af "$muted"
+  --scb "$darker" --scf "$muted"
+)
+
+# TTY stdin -> command runner (current SUPER+D behavior).
+# Piped stdin -> choose from the piped list.
+if [[ -t 0 ]]; then
+  exec bemenu-run "${opts[@]}" "$@"
+else
+  exec bemenu "${opts[@]}" "$@"
+fi

@@ -1,40 +1,664 @@
 {
-  "repository": "omarchy-sway-layer",
-  "strategy": "planning artifact creation: planning/EXECUTION_PLAN_*.md",
-  "generated_at_revision": "3a21f4ab11334af3cbb68affffa0fd88265e4354",
+  "strategy": "pattern",
   "boundaries": [
-    {"revision": "6347d96d7ccb2be354fd2bb5dc621e00d2056694", "label": "initial commit / baseline", "date": "2026-10-13"},
-    {"revision": "8796e88c2fa958f890d4eb514892869417545ed2", "label": "execution plans added", "date": "2026-10-13", "artifact": "planning/EXECUTION_PLAN_1.md; planning/EXECUTION_PLAN_2.md"},
-    {"revision": "3a21f4ab11334af3cbb68affffa0fd88265e4354", "label": "HEAD", "date": "2026-10-13"}
-  ],
-  "intervals": [
     {
-      "from": "6347d96d7ccb2be354fd2bb5dc621e00d2056694",
-      "to": "8796e88c2fa958f890d4eb514892869417545ed2",
-      "commits": [
-        {"sha": "fc2eaa75cee261034302fc3a97f3de4e2a5598d0", "subject": "feat: add Omarchy Sway compatibility layer", "type": "feat"},
-        {"sha": "1ff1db85b120f85519e91c66f2075d59cbeaf4d4", "subject": "docs: explain Omarchy Sway behavior and grouping", "type": "docs"},
-        {"sha": "8796e88c2fa958f890d4eb514892869417545ed2", "subject": "docs: record implementation orchestration plans", "type": "docs"}
-      ],
-      "churn": {"files_changed": 23, "insertions": 1575, "deletions": 0},
-      "status": {"added": 23, "modified": 0, "deleted": 0, "renamed": 0},
-      "subsystems": {"application_and_configuration": 741, "planning": 730, "scripts": 105},
-      "classification": "initial build / high change, insufficient history for convergence assessment"
+      "sha": "6347d96",
+      "date": "2026-10-13",
+      "subject": "Initial plan",
+      "trigger": "root"
     },
     {
-      "from": "8796e88c2fa958f890d4eb514892869417545ed2",
-      "to": "3a21f4ab11334af3cbb68affffa0fd88265e4354",
-      "commits": [
-        {"sha": "ae4492bf1bd75341eebc81bd60fe4548d6583920", "subject": "fix: clear shellcheck warnings", "type": "fix"},
-        {"sha": "202f3194fe4bfd2ced6a0ff046eece083dc29a61", "subject": "feat: add context-aware Omarchy group movement", "type": "feat"},
-        {"sha": "43f782d65de2b4b9904f5ad08051a14ae759c1b1", "subject": "docs: explain Omarchy group-aware bindings", "type": "docs"},
-        {"sha": "3a21f4ab11334af3cbb68affffa0fd88265e4354", "subject": "fix: use Lua dispatch for group movement", "type": "fix"}
-      ],
-      "churn": {"files_changed": 13, "insertions": 309, "deletions": 17},
-      "status": {"added": 7, "modified": 6, "deleted": 0, "renamed": 0},
-      "subsystems": {"planning": 92, "scripts": 49, "tests": 125, "application_and_configuration": 111},
-      "classification": "feature refinement and correction; some validation/documentation convergence, but implementation remains volatile"
+      "sha": "8796e88c2fa958f890d4eb514892869417545ed2",
+      "date": "2026-10-13",
+      "subject": "docs: record implementation orchestration plans",
+      "trigger": "planning/EXECUTION_PLAN_*.md"
+    },
+    {
+      "sha": "4c5c08a7928c9c17927ebdf8ba2a261a335fb6f6",
+      "date": "2026-10-13",
+      "subject": "docs: planning and research",
+      "trigger": "planning/EXECUTION_PLAN_*.md"
+    },
+    {
+      "sha": "cc5c4edb253968a8ef66671cdd54c483017710b2",
+      "date": "2026-10-15",
+      "subject": "docs: add bemenu theming research and execution plan",
+      "trigger": "planning/EXECUTION_PLAN_*.md"
+    },
+    {
+      "sha": "7d7e1361707fe9c75d2cc0c1976f15e34123a8ba",
+      "date": "2026-10-15",
+      "subject": "docs: record confirmed appearance check for the themed bemenu wrapper",
+      "trigger": "HEAD"
     }
   ],
-  "limitations": ["No tags or merge commits found.", "Only one plan-addition boundary exists; intervals here use the initial commit and current HEAD as outer bounds.", "The initial interval contains the entire repository bootstrap, so its raw churn is not comparable to the follow-up interval."]
+  "summary": {
+    "intervalCount": 4,
+    "commitCount": 25,
+    "filesChanged": 74,
+    "linesAdded": 4782,
+    "linesDeleted": 181,
+    "churn": 4963
+  },
+  "subsystem": {
+    "Makefile": 63,
+    "README.md": 276,
+    "TODO.md": 54,
+    "bin": 407,
+    "config": 329,
+    "planning": 2259,
+    "scripts": 372,
+    ".scratch": 91,
+    "AGENTS.md": 44,
+    "docs": 238,
+    "tests": 722,
+    "LICENSE": 108
+  },
+  "convergence": {
+    "evolving": 4
+  },
+  "intervals": [
+    {
+      "intervalId": "I0",
+      "fromSha": "6347d96d7ccb2be354fd2bb5dc621e00d2056694",
+      "toSha": "8796e88c2fa958f890d4eb514892869417545ed2",
+      "fromTrigger": "6347d96d7ccb2be354fd2bb5dc621e00d2056694",
+      "toTrigger": "8796e88",
+      "commitCount": 3,
+      "commits": [
+        {
+          "shortSha": "fc2eaa7",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "feat: add Omarchy Sway compatibility layer",
+          "type": "feat"
+        },
+        {
+          "shortSha": "1ff1db8",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "docs: explain Omarchy Sway behavior and grouping",
+          "type": "docs"
+        },
+        {
+          "shortSha": "8796e88",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "docs: record implementation orchestration plans",
+          "type": "docs"
+        }
+      ],
+      "metrics": {
+        "filesChanged": 23,
+        "linesAdded": 1575,
+        "linesDeleted": 0,
+        "churn": 1575
+      },
+      "commitTypes": {
+        "feat": 1,
+        "docs": 2
+      },
+      "fileStatuses": [
+        {
+          "status": "A",
+          "path": "Makefile"
+        },
+        {
+          "status": "A",
+          "path": "README.md"
+        },
+        {
+          "status": "A",
+          "path": "TODO.md"
+        },
+        {
+          "status": "A",
+          "path": "bin/apply-sway-layer"
+        },
+        {
+          "status": "A",
+          "path": "config/hypr/binds_sway.conf"
+        },
+        {
+          "status": "A",
+          "path": "config/hypr/binds_sway.lua"
+        },
+        {
+          "status": "A",
+          "path": "config/quickshell/BarOverrides.qml"
+        },
+        {
+          "status": "A",
+          "path": "config/waybar/config.jsonc"
+        },
+        {
+          "status": "A",
+          "path": "config/waybar/style.css"
+        },
+        {
+          "status": "A",
+          "path": "planning/EXECUTION_PLAN_1.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/EXECUTION_PLAN_2.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/PROMPT_TEMPLATE_1.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/PROMPT_TEMPLATE_2.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/RESEARCH_HYPRLAND_GROUPS_VS_SWAY_STACKING.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/STATE_1.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/STATE_2.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/tasks/1.1.todo.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/tasks/1.2.todo.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/tasks/2.1.todo.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/tasks/3.1.todo.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/tasks/3.2.todo.md"
+        },
+        {
+          "status": "A",
+          "path": "scripts/backup.sh"
+        },
+        {
+          "status": "A",
+          "path": "scripts/detect_omarchy.sh"
+        }
+      ],
+      "subsystemFileModifications": {
+        "Makefile": 31,
+        "README.md": 107,
+        "TODO.md": 27,
+        "bin": 293,
+        "config": 248,
+        "planning": 764,
+        "scripts": 105
+      },
+      "convergenceStatus": "evolving"
+    },
+    {
+      "intervalId": "I1",
+      "fromSha": "8796e88c2fa958f890d4eb514892869417545ed2",
+      "toSha": "4c5c08a7928c9c17927ebdf8ba2a261a335fb6f6",
+      "fromTrigger": "planning/EXECUTION_PLAN_*.md",
+      "toTrigger": "planning/EXECUTION_PLAN_*.md",
+      "commitCount": 13,
+      "commits": [
+        {
+          "shortSha": "ae4492b",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "fix: clear shellcheck warnings",
+          "type": "fix"
+        },
+        {
+          "shortSha": "202f319",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "feat: add context-aware Omarchy group movement",
+          "type": "feat"
+        },
+        {
+          "shortSha": "43f782d",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "docs: explain Omarchy group-aware bindings",
+          "type": "docs"
+        },
+        {
+          "shortSha": "3a21f4a",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "fix: use Lua dispatch for group movement",
+          "type": "fix"
+        },
+        {
+          "shortSha": "b76383d",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "docs: record contextual movement decisions",
+          "type": "docs"
+        },
+        {
+          "shortSha": "fee8d2f",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "fix: honor directional group targeting and exit",
+          "type": "fix"
+        },
+        {
+          "shortSha": "e9fb8dc",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "docs: add git history evolution study",
+          "type": "docs"
+        },
+        {
+          "shortSha": "cce40c6",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "docs: refine directional movement decisions",
+          "type": "docs"
+        },
+        {
+          "shortSha": "5bf87b5",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "feat: add bemenu command runner binding",
+          "type": "feat"
+        },
+        {
+          "shortSha": "b3a0315",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "docs: add agent onboarding guide",
+          "type": "docs"
+        },
+        {
+          "shortSha": "a3536c8",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "feat: add directional pair reorientation and resize mode",
+          "type": "feat"
+        },
+        {
+          "shortSha": "f84cd16",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "docs: document directional movement and resize behavior",
+          "type": "docs"
+        },
+        {
+          "shortSha": "4c5c08a",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "docs: planning and research",
+          "type": "docs"
+        }
+      ],
+      "metrics": {
+        "filesChanged": 30,
+        "linesAdded": 1583,
+        "linesDeleted": 69,
+        "churn": 1652
+      },
+      "commitTypes": {
+        "fix": 3,
+        "feat": 3,
+        "docs": 7
+      },
+      "fileStatuses": [
+        {
+          "status": "A",
+          "path": ".scratch/.gitignore"
+        },
+        {
+          "status": "A",
+          "path": ".scratch/git-history-interval-study/evolution-digest.md"
+        },
+        {
+          "status": "A",
+          "path": ".scratch/git-history-interval-study/interval-ledger.json"
+        },
+        {
+          "status": "A",
+          "path": "AGENTS.md"
+        },
+        {
+          "status": "M",
+          "path": "Makefile"
+        },
+        {
+          "status": "M",
+          "path": "README.md"
+        },
+        {
+          "status": "D",
+          "path": "TODO.md"
+        },
+        {
+          "status": "M",
+          "path": "bin/apply-sway-layer"
+        },
+        {
+          "status": "M",
+          "path": "config/hypr/binds_sway.conf"
+        },
+        {
+          "status": "M",
+          "path": "config/hypr/binds_sway.lua"
+        },
+        {
+          "status": "A",
+          "path": "docs/decisions/0001-contextual-movement-through-installed-omarchy-helper.md"
+        },
+        {
+          "status": "A",
+          "path": "docs/decisions/0002-use-read-only-client-state-for-directional-probes.md"
+        },
+        {
+          "status": "A",
+          "path": "docs/decisions/0003-use-omarchy-lua-dispatch-expressions.md"
+        },
+        {
+          "status": "A",
+          "path": "docs/decisions/README.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/EXECUTION_PLAN_3.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/PROMPT_TEMPLATE_3.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/RESEARCH_TILED_MOVEMENT_AND_RESIZING.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/RESEARCH_command-runner.md"
+        },
+        {
+          "status": "M",
+          "path": "planning/STATE_2.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/STATE_3.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/TODO_20261013.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/tasks/2.1.1.todo.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/tasks/2.2.1.todo.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/tasks/3.1.1.todo.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/tasks/3.2.1.todo.md"
+        },
+        {
+          "status": "M",
+          "path": "scripts/backup.sh"
+        },
+        {
+          "status": "A",
+          "path": "scripts/sway-group-move"
+        },
+        {
+          "status": "A",
+          "path": "tests/test-sway-bindings.lua"
+        },
+        {
+          "status": "A",
+          "path": "tests/test-sway-group-move.sh"
+        },
+        {
+          "status": "A",
+          "path": "tests/test-sway-installer.sh"
+        }
+      ],
+      "subsystemFileModifications": {
+        ".scratch": 91,
+        "AGENTS.md": 43,
+        "Makefile": 24,
+        "README.md": 35,
+        "TODO.md": 27,
+        "bin": 6,
+        "config": 81,
+        "docs": 149,
+        "planning": 554,
+        "scripts": 201,
+        "tests": 441
+      },
+      "convergenceStatus": "evolving"
+    },
+    {
+      "intervalId": "I2",
+      "fromSha": "4c5c08a7928c9c17927ebdf8ba2a261a335fb6f6",
+      "toSha": "cc5c4edb253968a8ef66671cdd54c483017710b2",
+      "fromTrigger": "planning/EXECUTION_PLAN_*.md",
+      "toTrigger": "planning/EXECUTION_PLAN_*.md",
+      "commitCount": 3,
+      "commits": [
+        {
+          "shortSha": "97088df",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "docs: add LICENSE",
+          "type": "docs"
+        },
+        {
+          "shortSha": "2503b39",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-13",
+          "subject": "docs: update README",
+          "type": "docs"
+        },
+        {
+          "shortSha": "cc5c4ed",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-15",
+          "subject": "docs: add bemenu theming research and execution plan",
+          "type": "docs"
+        }
+      ],
+      "metrics": {
+        "filesChanged": 6,
+        "linesAdded": 869,
+        "linesDeleted": 92,
+        "churn": 961
+      },
+      "commitTypes": {
+        "docs": 3
+      },
+      "fileStatuses": [
+        {
+          "status": "A",
+          "path": "LICENSE"
+        },
+        {
+          "status": "M",
+          "path": "README.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/EXECUTION_PLAN_4.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/PROMPT_TEMPLATE_4.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/RESEARCH_BEMENU_OMARCHY_THEMING.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/STATE_4.md"
+        }
+      ],
+      "subsystemFileModifications": {
+        "LICENSE": 108,
+        "README.md": 124,
+        "planning": 729
+      },
+      "convergenceStatus": "evolving"
+    },
+    {
+      "intervalId": "I3",
+      "fromSha": "cc5c4edb253968a8ef66671cdd54c483017710b2",
+      "toSha": "7d7e1361707fe9c75d2cc0c1976f15e34123a8ba",
+      "fromTrigger": "cc5c4ed",
+      "toTrigger": "HEAD",
+      "commitCount": 6,
+      "commits": [
+        {
+          "shortSha": "0447230",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-15",
+          "subject": "feat: add themed centered bemenu wrapper",
+          "type": "feat"
+        },
+        {
+          "shortSha": "d300358",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-15",
+          "subject": "feat: add opt-in installer support for the themed bemenu wrapper",
+          "type": "feat"
+        },
+        {
+          "shortSha": "3fc1b26",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-15",
+          "subject": "docs: document the opt-in themed bemenu wrapper and record ADR 0004",
+          "type": "docs"
+        },
+        {
+          "shortSha": "196c96c",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-15",
+          "subject": "test: add bemenu theme-fidelity fixtures and contrast check",
+          "type": "test"
+        },
+        {
+          "shortSha": "a322984",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-15",
+          "subject": "fix: run bemenu-run on null stdin so exec-launched SUPER+D lists commands",
+          "type": "fix"
+        },
+        {
+          "shortSha": "7d7e136",
+          "author": "Andrew Gene Brown",
+          "date": "2026-10-15",
+          "subject": "docs: record confirmed appearance check for the themed bemenu wrapper",
+          "type": "docs"
+        }
+      ],
+      "metrics": {
+        "filesChanged": 15,
+        "linesAdded": 755,
+        "linesDeleted": 20,
+        "churn": 775
+      },
+      "commitTypes": {
+        "feat": 2,
+        "docs": 2,
+        "test": 1,
+        "fix": 1
+      },
+      "fileStatuses": [
+        {
+          "status": "M",
+          "path": "AGENTS.md"
+        },
+        {
+          "status": "M",
+          "path": "Makefile"
+        },
+        {
+          "status": "M",
+          "path": "README.md"
+        },
+        {
+          "status": "M",
+          "path": "bin/apply-sway-layer"
+        },
+        {
+          "status": "A",
+          "path": "docs/decisions/0004-live-palette-wrapper-for-bemenu.md"
+        },
+        {
+          "status": "M",
+          "path": "docs/decisions/README.md"
+        },
+        {
+          "status": "M",
+          "path": "planning/STATE_4.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/tasks/4.1.1.todo.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/tasks/4.2.1.todo.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/tasks/4.3.1.todo.md"
+        },
+        {
+          "status": "A",
+          "path": "planning/tasks/4.4.1.todo.md"
+        },
+        {
+          "status": "M",
+          "path": "scripts/backup.sh"
+        },
+        {
+          "status": "A",
+          "path": "scripts/bemenu-themed"
+        },
+        {
+          "status": "A",
+          "path": "tests/test-bemenu-themed.sh"
+        },
+        {
+          "status": "M",
+          "path": "tests/test-sway-installer.sh"
+        }
+      ],
+      "subsystemFileModifications": {
+        "AGENTS.md": 1,
+        "Makefile": 8,
+        "README.md": 10,
+        "bin": 108,
+        "docs": 89,
+        "planning": 212,
+        "scripts": 66,
+        "tests": 281
+      },
+      "convergenceStatus": "evolving"
+    }
+  ]
 }

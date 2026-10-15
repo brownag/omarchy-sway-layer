@@ -38,6 +38,8 @@ Directional group exit has an additional runtime constraint: the native move-out
 
 This contract is specific to the Omarchy Lua-enabled path; it does not establish syntax for the plain Hyprland configuration path or other Omarchy/runtime versions.
 
+Dispatchers bound inside a Lua-mode submap (ADR-0007) follow the same Lua-expression contract: entering or leaving a modal context changes which keys are active, not the dispatch syntax used within it.
+
 ## Consequences
 
 - **Positive:** Dispatch syntax matches the tested runtime API, and failures are visible to tests and callers.
@@ -47,4 +49,4 @@ This contract is specific to the Omarchy Lua-enabled path; it does not establish
 
 ## Validation & Compliance
 
-`3a21f4a` updates `scripts/sway-group-move` and `tests/test-sway-group-move.sh` to use and assert Lua dispatcher expressions. `fee8d2f` adds directional follow-up moves for group exit and verifies all four directions with disposable windows. `TODO.md` records runtime diagnosis and behavior checks. The decision is limited to the Omarchy Lua dispatch path.
+`3a21f4a` updates `scripts/sway-group-move` and `tests/test-sway-group-move.sh` to use and assert Lua dispatcher expressions. `fee8d2f` adds directional follow-up moves for group exit and verifies all four directions with disposable windows. `TODO.md` records runtime diagnosis and behavior checks. The decision is limited to the Omarchy Lua dispatch path; ADR-0007 (modal submaps) applies this same contract to dispatches registered inside a submap.

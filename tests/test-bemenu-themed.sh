@@ -139,6 +139,11 @@ tty_out=$(PATH="$run_path" OMARCHY_THEME_COLORS="$tmp/colors.toml" \
   script -qec "bash \"$wrapper\"" /dev/null)
 contains "$tty_out" 'BEMENU-RUN:' 'TTY stdin selects bemenu-run'
 
+# --- Non-tty, non-pipe stdin (Hyprland exec provides /dev/null) -> bemenu-run ---
+null_out=$(PATH="$run_path" OMARCHY_THEME_COLORS="$tmp/colors.toml" \
+  bash "$wrapper" < /dev/null)
+contains "$null_out" 'BEMENU-RUN:' 'null stdin selects bemenu-run'
+
 # --- Theme-fidelity fixtures: every mapped flag must carry the palette value
 # verbatim (guards bemenu channel-order and pass-through assumptions). ---
 

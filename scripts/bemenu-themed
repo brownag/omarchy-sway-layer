@@ -50,10 +50,11 @@ opts=(
   --scb "$darker" --scf "$muted"
 )
 
-# TTY stdin -> command runner (current SUPER+D behavior).
-# Piped stdin -> choose from the piped list.
-if [[ -t 0 ]]; then
-  exec bemenu-run "${opts[@]}" "$@"
-else
+# Piped or redirected stdin -> choose from that list (dmenu mode).
+# A terminal or /dev/null stdin (Hyprland exec gives /dev/null) -> command
+# runner, which builds its own PATH list; plain bemenu would show an empty menu.
+if [[ -p /dev/stdin || -f /dev/stdin ]]; then
   exec bemenu "${opts[@]}" "$@"
+else
+  exec bemenu-run "${opts[@]}" "$@"
 fi

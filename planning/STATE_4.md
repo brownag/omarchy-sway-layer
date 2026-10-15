@@ -108,3 +108,20 @@ Recorded 2026-10-15 by the orchestrator on `main` @ `2503b39`.
 - [ ] **4.4.1 appearance** (deferred, D6): with `--enable-bemenu-themed` installed,
       open `SUPER+D` under the active dark theme and one light theme; confirm the menu
       is centered and readable. Record monitor, themes, result.
+
+## Discovered defects
+
+### Hotfix: `SUPER+D` showed an empty menu under Hyprland
+
+- **Symptom (reported at the manual check):** the centered box appeared and accepted
+  text, but listed no commands and did nothing on Enter.
+- **Root cause:** the wrapper dispatched with `[[ -t 0 ]]`. Hyprland `exec_cmd` runs
+  the command with stdin at `/dev/null` (probed: `tty=no`, `link=/dev/null`), so the
+  check was false and the wrapper ran plain `bemenu` with empty stdin instead of
+  `bemenu-run`.
+- **Fix:** dispatch on piped/redirected stdin instead — `[[ -p /dev/stdin || -f /dev/stdin ]]`
+  selects `bemenu` (list mode); a terminal or `/dev/null` selects `bemenu-run`.
+- **Regression test:** `tests/test-bemenu-themed.sh` now asserts `/dev/null` stdin
+  selects `bemenu-run`, alongside the TTY and pipe cases.
+- **Note:** the installed copy at `$BIN_HOME/bemenu-themed` is stale until the opt-in
+  install is re-run (`./bin/apply-sway-layer --enable-bemenu-themed`).
